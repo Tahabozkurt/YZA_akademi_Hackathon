@@ -13,7 +13,7 @@ from app.services import build_calendar_events
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
-
+##Tarihleri çek
 @router.get("/events", response_model=list[CalendarEvent])
 #belirli tarihler arasındaki satış, sevkiyat veya stok uyarılarını getiricek
 def calendar_events(

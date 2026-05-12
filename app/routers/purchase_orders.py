@@ -1,3 +1,5 @@
+###Tedarikle ilgili işlemler
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
@@ -7,12 +9,12 @@ from app.schemas import StatusUpdate
 
 router = APIRouter(prefix="/purchase-orders", tags=["purchase orders"])
 
-
+###Siparişleri çek
 @router.get("/", response_model=list[PurchaseOrder])
 def list_purchase_orders(session: Session = Depends(get_session)):
     return session.exec(select(PurchaseOrder)).all()
 
-
+###sipariş ekle
 @router.post("/", response_model=PurchaseOrder, status_code=201)
 def create_purchase_order(order: PurchaseOrder, session: Session = Depends(get_session)):
     session.add(order)
@@ -20,7 +22,7 @@ def create_purchase_order(order: PurchaseOrder, session: Session = Depends(get_s
     session.refresh(order)
     return order
 
-
+###Tedarik güncelle
 @router.patch("/{order_id}/status", response_model=PurchaseOrder)
 def update_purchase_order_status(order_id: int, payload: StatusUpdate, session: Session = Depends(get_session)):
     order = session.get(PurchaseOrder, order_id)

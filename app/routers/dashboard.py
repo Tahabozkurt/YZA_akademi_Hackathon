@@ -13,19 +13,19 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/summary", response_model=DashboardSummary)
 def dashboard_summary(session: Session = Depends(get_session)):
-    ##Mevcut zamanı çek +7 gün ekle
+    ##Mevcut zamanı çekip 14 gün ekledik
     now = datetime.utcnow()
     next_week = now + timedelta(days=14)
 
     ##Veri tabanından verileri çekme kısmı
     ##Bekleyensatışlar
-    pending_sales = session.exec(select(func.count(SalesOrder.id)).where(SalesOrder.status.in_(["pending", "preparing", "shipped"]))).one()
+    pending_sales = session.exec(select(func.count(SalesOrder.id)).where(SalesOrder.status.in_(["beklemede", "hazırlanıyor", "sevk edildi"]))).one()
     ###Gecikmiş satışlar
-    delayed_sales = session.exec(select(func.count(SalesOrder.id)).where((SalesOrder.status == "delayed") | (SalesOrder.promised_delivery_at < now))).one()
-    ##Gelen alımlar
-    incoming_po = session.exec(select(func.count(PurchaseOrder.id)).where(PurchaseOrder.expected_arrival_at <= next_week, PurchaseOrder.status.in_(["planned", "ordered", "in_transit"]))).one()
+    delayed_sales = session.exec(select(func.count(SalesOrder.id)).where((SalesOrder.status == "gecikmiş") | (SalesOrder.promised_delivery_at < now))).one()
+    ##Gelen alımlar Purchase Order(po)
+    incoming_po = session.exec(select(func.count(PurchaseOrder.id)).where(PurchaseOrder.expected_arrival_at <= next_week, PurchaseOrder.status.in_(["planlandı", "sipariş verildi", "yolda/aktarmada"]))).one()
     ##Gecikmiş sevkiyatlar
-    delayed_shipments = session.exec(select(func.count(Shipment.id)).where((Shipment.status == "delayed") | (Shipment.estimated_delivery_at < now))).one()
+    delayed_shipments = session.exec(select(func.count(Shipment.id)).where((Shipment.status == "gecikmiş") | (Shipment.estimated_delivery_at < now))).one()
     ###Kritik stok uyarısı
     low_stock = session.exec(select(func.count(Product.id)).where(Product.stock_quantity <= Product.reorder_threshold)).one()
     return DashboardSummary(
