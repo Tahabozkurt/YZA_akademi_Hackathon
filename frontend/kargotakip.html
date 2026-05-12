@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kargo İşlemleri ve Özet Paneli</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body { background-color: #f8f9fa; }
+
+        /* Üst Özet Kartları Stilleri */
+        .summary-box {
+            border: 0;
+            border-left: 4px solid #0d6efd;
+            border-radius: 8px;
+        }
+        .summary-box.box-success { border-left-color: #198754; }
+        .summary-box.box-warning { border-left-color: #ffc107; }
+        .summary-box.box-danger { border-left-color: #dc3545; }
+        .small-muted { font-size: .875rem; color: #6c757d; }
+
+        /* Swagger Tarzı Accordion Renk Paletleri */
+        .cargo-header-pending { background-color: #ebf3fb; border: 1px solid #c2def4; }
+        .cargo-badge-pending { background-color: #61affe; color: white; min-width: 90px; }
+
+        .cargo-header-delivered { background-color: #e8f6f0; border: 1px solid #bce1d0; }
+        .cargo-badge-delivered { background-color: #49cc90; color: white; min-width: 90px; }
+
+        .cargo-header-delayed { background-color: #fbf1e6; border: 1px solid #f4d2c2; }
+        .cargo-badge-delayed { background-color: #fca130; color: white; min-width: 90px; }
+
+        .accordion-button:focus { box-shadow: none; }
+        .accordion-button:not(.collapsed) { color: inherit; box-shadow: none; }
+    </style>
+</head>
+<body class="p-4">
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Kargo İşlemleri</h2>
+            <p class="text-muted mb-0">Genel kargo durumlarını ve detaylı müşteri mesajlarını buradan inceleyebilirsiniz.</p>
+        </div>
+    </div>
+
+    <!-- 1. BÖLÜM: ÜST ÖZET KARTLARI -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm summary-box">
+                <div class="card-body">
+                    <div class="small-muted">Toplam Kargo</div>
+                    <div class="fs-3 fw-bold" id="totalShipmentCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm summary-box box-warning">
+                <div class="card-body">
+                    <div class="small-muted">Yolda / Dağıtımda</div>
+                    <div class="fs-3 fw-bold" id="activeShipmentCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm summary-box box-success">
+                <div class="card-body">
+                    <div class="small-muted">Teslim Edildi</div>
+                    <div class="fs-3 fw-bold" id="deliveredShipmentCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm summary-box box-danger">
+                <div class="card-body">
+                    <div class="small-muted">Sorunlu / Gecikmiş</div>
+                    <div class="fs-3 fw-bold" id="problemShipmentCount">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtreleme Alanı -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <select id="statusFilter" class="form-select">
+                <option value="">Tüm Durumlar</option>
+                <option value="pending">Yolda / Dağıtımda</option>
+                <option value="delivered">Teslim Edilenler</option>
+                <option value="delayed">Gecikmiş / Sorunlu</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 2. BÖLÜM: AÇILIR KAPANIR (ACCORDION) KARGO LİSTESİ -->
+    <div class="accordion" id="cargoAccordion">
+        <div class="text-center py-4" id="loadingIndicator">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-2 text-muted">Kargo verileri çekiliyor...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Gerçek API'ye bağlayacağın zaman burayı kullanabilirsin
+    // const API_BASE = "http://127.0.0.1:8000";
+
+    async function loadCargoData() {
+        const container = document.getElementById("cargoAccordion");
+        const loadingIndicator = document.getElementById("loadingIndicator");
+
+        try {
+            // DEMO VERİ (Gerçek projede fetch ile çekilecek veri yapısı)
+            const mockData = [
+                {
+                    id: "TR-192837465",
+                    status: "pending",
+                    status_text: "Dağıtımda",
+                    customer: "Ahmet Yılmaz",
+                    message: "Lütfen zile basmayın, bebek uyuyor. Kapıya bırakabilirsiniz.",
+                    branch: "Kadıköy Şube",
+                    estimated_delivery: "13 Mayıs 2026",
+                    weight: "1.5 kg / 2 Desi",
+                    last_action: "Kurye dağıtmak üzere çıkardı."
+                },
+                {
+                    id: "TR-564738291",
+                    status: "delivered",
+                    status_text: "Teslim Edildi",
+                    customer: "Ayşe Demir",
+                    message: "Ofis güvenliğine bırakılabilir.",
+                    delivered_to: "Güvenlik Görevlisi (Ali B.)",
+                    delivery_date: "10 Mayıs 2026, 14:30",
+                    final_status: "İşlem Tamamlandı."
+                },
+                {
+                    id: "TR-998877665",
+                    status: "delayed",
+                    status_text: "Gecikmiş (Hasarlı Paket)",
+                    customer: "Can Kaya",
+                    message: "Ürün kırılabilir eştir, dikkatli taşınsın.",
+                    branch: "Aktarma Merkezi",
+                    estimated_delivery: "Belirsiz",
+                    weight: "5 kg",
+                    last_action: "Paket hasar gördüğü için tutanak tutuldu, şubede bekliyor."
+                }
+            ];
+
+            // 1. Özet Kartlarını Güncelle
+            updateSummaryCards(mockData);
+
+            // 2. Filtreleme İşlemi
+            const selectedStatus = document.getElementById("statusFilter").value;
+            const filteredData = selectedStatus ? mockData.filter(item => item.status === selectedStatus) : mockData;
+
+            // İçeriği temizle
+            container.innerHTML = "";
+
+            if (filteredData.length === 0) {
+                container.innerHTML = "<div class='alert alert-secondary'>Bu kritere uygun kargo bulunamadı.</div>";
+                return;
+            }
+
+            // 3. Accordion Listesini Oluştur
+            filteredData.forEach((cargo, index) => {
+                let headerClass, badgeClass, badgeText;
+
+                // Duruma göre renk paleti belirleme
+                if (cargo.status === "delivered") {
+                    headerClass = "cargo-header-delivered";
+                    badgeClass = "cargo-badge-delivered";
+                    badgeText = "TESLİM";
+                } else if (cargo.status === "delayed") {
+                    headerClass = "cargo-header-delayed";
+                    badgeClass = "cargo-badge-delayed";
+                    badgeText = "GECİKME";
+                } else {
+                    headerClass = "cargo-header-pending";
+                    badgeClass = "cargo-badge-pending";
+                    badgeText = "DAĞITIMDA";
+                }
+
+                // Kutu içeriği HTML'i
+                const detailHTML = `
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-primary"><i class="bi bi-person me-1"></i> Müşteri & Mesaj</h6>
+                            <p class="mb-1"><strong>Müşteri:</strong> ${cargo.customer}</p>
+                            <div class="alert alert-light border mt-2 py-2 px-3 fst-italic">
+                                <i class="bi bi-chat-left-text text-muted me-2"></i> "${cargo.message}"
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary"><i class="bi bi-truck me-1"></i> Kargo Detayları</h6>
+                            ${cargo.status === "delivered" ? `
+                                <p class="mb-1"><strong>Teslim Alan:</strong> ${cargo.delivered_to}</p>
+                                <p class="mb-1"><strong>Teslimat Tarihi:</strong> ${cargo.delivery_date}</p>
+                                <p class="mb-1"><strong>Son Durum:</strong> ${cargo.final_status}</p>
+                            ` : `
+                                <p class="mb-1"><strong>Bulunduğu Yer:</strong> ${cargo.branch}</p>
+                                <p class="mb-1"><strong>Tahmini Teslimat:</strong> ${cargo.estimated_delivery}</p>
+                                <p class="mb-1"><strong>Ağırlık:</strong> ${cargo.weight}</p>
+                                <p class="mb-1 text-danger"><strong>Son İşlem:</strong> ${cargo.last_action}</p>
+                            `}
+                        </div>
+                    </div>
+                `;
+
+                const htmlString = `
+                    <div class="accordion-item mb-3 border-0 shadow-sm">
+                        <h2 class="accordion-header" id="heading${index}">
+                            <button class="accordion-button collapsed ${headerClass} rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="false" aria-controls="collapse${index}">
+                                <span class="badge ${badgeClass} p-2 me-3 fs-6">${badgeText}</span>
+                                <span class="fw-bold me-2 text-dark">${cargo.id}</span>
+                                <span class="text-secondary d-none d-md-inline"> - ${cargo.status_text}</span>
+                            </button>
+                        </h2>
+                        <div id="collapse${index}" class="accordion-collapse collapse" aria-labelledby="heading${index}" data-bs-parent="#cargoAccordion">
+                            <div class="accordion-body bg-white border border-top-0 rounded-bottom">
+                                ${detailHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', htmlString);
+            });
+
+        } catch (error) {
+            console.error("Veriler çekilirken hata oluştu:", error);
+            container.innerHTML = "<div class='alert alert-danger'>Veriler yüklenemedi. Lütfen bağlantınızı kontrol edin.</div>";
+        }
+    }
+
+    // Özet kartlarındaki rakamları güncelleyen fonksiyon
+    function updateSummaryCards(data) {
+        const total = data.length;
+        const active = data.filter(item => item.status === 'pending').length;
+        const delivered = data.filter(item => item.status === 'delivered').length;
+        const problem = data.filter(item => item.status === 'delayed').length;
+
+        document.getElementById("totalShipmentCount").innerText = total;
+        document.getElementById("activeShipmentCount").innerText = active;
+        document.getElementById("deliveredShipmentCount").innerText = delivered;
+        document.getElementById("problemShipmentCount").innerText = problem;
+    }
+
+    // Sayfa yüklendiğinde ve filtre değiştiğinde çalıştır
+    document.addEventListener("DOMContentLoaded", loadCargoData);
+    document.getElementById("statusFilter").addEventListener("change", loadCargoData);
+
+</script>
+</body>
+</html>
