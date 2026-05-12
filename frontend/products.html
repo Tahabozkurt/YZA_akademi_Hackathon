@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ürün Stok Yönetimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="products.html">Stok Yönetim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" href="products.html">Ürünler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="calendar.html">Takvim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="orders.html">Siparişler</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+             <li class="nav-item">
+              <a class="nav-link" href="login.html" onclick="logout()">Çıkış Yap <i class="bi bi-box-arrow-right"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Ürün Stok Yönetimi</h2>
+        <div>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-circle"></i> Yeni Ürün Ekle
+            </button>
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#planDeliveryModal">
+            <i class="bi bi-calendar-plus"></i> Teslimat Planla
+            </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle" id="productsTable">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Ürün Adı</th>
+              <th scope="col">Birim</th>
+              <th scope="col" class="text-center">Mevcut Stok</th>
+              <th scope="col">En Son Teslimat</th>
+              <th scope="col" class="text-center">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <!-- Veriler JavaScript ile Backend'den (Supabase) çekilip buraya eklenecek -->
+            <tr><td colspan="5" class="text-center">Ürünler yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Yeni Ürün Ekle Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Yeni Ürün Ekle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addProductForm">
+              <div class="mb-3">
+                <label for="addProductName" class="form-label">Ürün Adı</label>
+                <input type="text" class="form-control" id="addProductName" required>
+              </div>
+              <div class="mb-3">
+                <label for="addProductUnit" class="form-label">Birim Seçin</label>
+                <select class="form-select" id="addProductUnit" required>
+                  <option value="" disabled selected>Lütfen bir birim seçin...</option>
+                  <option value="Kilogram (Kg)">Kilogram (Kg)</option>
+                  <option value="500 Gr Cam Kavanoz">500 Gr Cam Kavanoz</option>
+                  <option value="1 Kg Cam Kavanoz">1 Kg Cam Kavanoz</option>
+                  <option value="Adet">Adet</option>
+                  <option value="Litre (Lt)">Litre (Lt)</option>
+                  <option value="Kutu">Kutu</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="addProductStock" class="form-label">Başlangıç Stoğu (Mağazada olan)</label>
+                <input type="number" class="form-control" id="addProductStock" value="0" min="0" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="addProductForm" class="btn btn-primary">Kaydet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teslimat Planla Modal -->
+    <div class="modal fade" id="planDeliveryModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Teslimat Planla</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="planDeliveryForm">
+              <div class="mb-3">
+                <label for="planProductSelect" class="form-label">Ürün Seçin</label>
+                <select class="form-select" id="planProductSelect" required>
+                  <option value="" disabled selected>Yükleniyor...</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="planDeliveryQuantity" class="form-label">Miktar</label>
+                <input type="number" class="form-control" id="planDeliveryQuantity" min="1" required>
+              </div>
+              <div class="mb-3">
+                <label for="planDeliveryDate" class="form-label">Planlanan Tarih</label>
+                <input type="date" class="form-control" id="planDeliveryDate" required>
+              </div>
+              <div class="mb-3">
+                <label for="planDeliverySupplier" class="form-label">Tedarikçi (Opsiyonel)</label>
+                <input type="text" class="form-control" id="planDeliverySupplier">
+              </div>
+              <div class="mb-3">
+                <label for="planDeliveryNotes" class="form-label">Notlar (Opsiyonel)</label>
+                <textarea class="form-control" id="planDeliveryNotes" rows="2"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="planDeliveryForm" class="btn btn-primary">Planla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Ürün Düzenle Modal -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Ürünü Düzenle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editProductForm">
+              <input type="hidden" id="editProductId">
+              <div class="mb-3">
+                <label for="editProductName" class="form-label">Ürün Adı</label>
+                <input type="text" class="form-control" id="editProductName" required>
+              </div>
+              <div class="mb-3">
+                <label for="editProductUnit" class="form-label">Birim</label>
+                <select class="form-select" id="editProductUnit" required>
+                  <option value="" disabled>Lütfen bir birim seçin...</option>
+                  <option value="Kilogram (Kg)">Kilogram (Kg)</option>
+                  <option value="500 Gr Cam Kavanoz">500 Gr Cam Kavanoz</option>
+                  <option value="1 Kg Cam Kavanoz">1 Kg Cam Kavanoz</option>
+                  <option value="Adet">Adet</option>
+                  <option value="Litre (Lt)">Litre (Lt)</option>
+                  <option value="Kutu">Kutu</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editProductStock" class="form-label">Mevcut Stok</label>
+                <input type="number" class="form-control" id="editProductStock" min="0" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="editProductForm" class="btn btn-primary">Güncelle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ürün Sil Onay Modal -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Emin misiniz?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Bu ürünü kalıcı olarak silmek istediğinizden emin misiniz?
+            <p class="text-danger fw-bold mt-2" id="deleteProductName"></p>
+            <input type="hidden" id="deleteProductId">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Evet, Sil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Basit Oturum Kontrolü
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+          window.location.href = "home.html";
+      }
+
+      function logout() {
+          localStorage.removeItem('isLoggedIn');
+      }
+
+      const API_URL = "http://127.0.0.1:8000/api/products";
+      const DELIVERIES_API_URL = "http://127.0.0.1:8000/api/deliveries";
+
+      document.addEventListener('DOMContentLoaded', function () {
+
+        const tableBody = document.getElementById('productsTableBody');
+        let productsData = [];
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("Ağ hatası");
+                productsData = await response.json();
+
+                const del_resp = await fetch(DELIVERIES_API_URL);
+                const deliveries = await del_resp.json();
+
+                renderTable(deliveries);
+                updateProductSelect();
+            } catch (error) {
+                console.error("Veri çekilemedi:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Veriler yüklenemedi. Lütfen backend'in çalıştığından ve Supabase bağlantınızın olduğundan emin olun.</td></tr>`;
+            }
+        }
+
+        function renderTable(deliveries) {
+            tableBody.innerHTML = '';
+            if(productsData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center">Kayıtlı ürün bulunamadı.</td></tr>`;
+                return;
+            }
+
+            productsData.forEach(product => {
+                let plannedAmount = 0;
+                if(deliveries && deliveries.length > 0) {
+                    const productDeliveries = deliveries.filter(d => d.product_id === product.id && d.status === "Planlandı" && d.type === "Stok Eklendi");
+                    productDeliveries.forEach(d => {
+                        plannedAmount += d.quantity;
+                    });
+                }
+
+                let stockClass = "text-center fw-bold";
+                if(product.stock === 0) stockClass += " text-danger bg-light";
+                else if (product.stock < 15) stockClass += " text-warning bg-light";
+
+                let stockText = `${product.stock}`;
+                if(plannedAmount > 0) {
+                    stockText += ` <span class="text-primary fs-6 fw-normal">(+${plannedAmount})</span>`;
+                }
+
+                // En son teslimat boş ise '-' göster
+                let lastDeliveryText = product.last_delivery || "-";
+                if(lastDeliveryText === "None") lastDeliveryText = "-";
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td><a href="product-details.html?id=${product.id}" class="fw-bold text-decoration-none">${product.name}</a></td>
+                  <td>${product.unit}</td>
+                  <td class="${stockClass}">${stockText}</td>
+                  <td>${lastDeliveryText}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-warning me-2 edit-btn" title="Düzenle" onclick="openEditModal(${product.id})"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-sm btn-outline-danger delete-btn" title="Sil" onclick="openDeleteModal(${product.id}, '${product.name}')"><i class="bi bi-trash"></i></button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateProductSelect() {
+            const select = document.getElementById('planProductSelect');
+            select.innerHTML = '<option value="" disabled selected>Lütfen bir ürün seçin...</option>';
+            productsData.forEach(product => {
+                select.innerHTML += `<option value="${product.id}">${product.name} (${product.unit})</option>`;
+            });
+        }
+
+        // Teslimat Planla formunda tarihi bugünden öncesi seçilemez yap
+        const dateInput = document.getElementById('planDeliveryDate');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+
+        // YENİ ÜRÜN EKLE
+        const addProductForm = document.getElementById('addProductForm');
+        addProductForm.addEventListener('submit', async function(event) {
+          event.preventDefault();
+
+          const newProduct = {
+              name: document.getElementById('addProductName').value,
+              unit: document.getElementById('addProductUnit').value,
+              stock: parseInt(document.getElementById('addProductStock').value),
+              last_delivery: "-" // Artık otomatik tarih atmıyoruz, opsiyonel
+          };
+
+          try {
+              const response = await fetch(API_URL, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(newProduct)
+              });
+              if(response.ok) {
+                  bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                  addProductForm.reset();
+                  fetchProducts();
+              } else {
+                  alert("Ekleme başarısız oldu.");
+              }
+          } catch (error) {
+              console.error("Ekleme hatası:", error);
+          }
+        });
+
+        // TESLİMAT PLANLA
+        const planDeliveryForm = document.getElementById('planDeliveryForm');
+        planDeliveryForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const newDelivery = {
+                product_id: parseInt(document.getElementById('planProductSelect').value),
+                type: "Stok Eklendi",
+                quantity: parseInt(document.getElementById('planDeliveryQuantity').value),
+                date: document.getElementById('planDeliveryDate').value,
+                supplier: document.getElementById('planDeliverySupplier').value || null,
+                notes: document.getElementById('planDeliveryNotes').value || null,
+                status: "Planlandı"
+            };
+
+            try {
+                const response = await fetch(DELIVERIES_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newDelivery)
+                });
+
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('planDeliveryModal')).hide();
+                    planDeliveryForm.reset();
+                    alert("Teslimat başarıyla planlandı. Takvimden kontrol edebilirsiniz.");
+                    fetchProducts();
+                } else {
+                    const errorData = await response.json();
+                    console.error("Backend hatası:", errorData);
+                    alert("Planlama başarısız oldu: " + JSON.stringify(errorData));
+                }
+            } catch (error) {
+                console.error("Planlama hatası:", error);
+                alert("Planlama sırasında bir ağ hatası oluştu.");
+            }
+        });
+
+        // ÜRÜN DÜZENLE
+        window.openEditModal = function(id) {
+            const product = productsData.find(p => p.id === id);
+            if(product) {
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('editProductName').value = product.name;
+
+                const unitSelect = document.getElementById('editProductUnit');
+                let unitFound = false;
+                for (let i = 0; i < unitSelect.options.length; i++) {
+                    if (unitSelect.options[i].value === product.unit) {
+                        unitSelect.selectedIndex = i;
+                        unitFound = true;
+                        break;
+                    }
+                }
+
+                if(!unitFound) {
+                    const newOption = new Option(product.unit, product.unit);
+                    unitSelect.add(newOption);
+                    unitSelect.value = product.unit;
+                }
+
+                document.getElementById('editProductStock').value = product.stock;
+
+                new bootstrap.Modal(document.getElementById('editProductModal')).show();
+            }
+        };
+
+        const editProductForm = document.getElementById('editProductForm');
+        editProductForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('editProductId').value;
+            const updatedProduct = {
+                name: document.getElementById('editProductName').value,
+                unit: document.getElementById('editProductUnit').value,
+                stock: parseInt(document.getElementById('editProductStock').value)
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProduct)
+                });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                    fetchProducts();
+                }
+            } catch(error) {
+                console.error("Güncelleme hatası", error);
+            }
+        });
+
+        // ÜRÜN SİL
+        window.openDeleteModal = function(id, name) {
+            document.getElementById('deleteProductId').value = id;
+            document.getElementById('deleteProductName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        };
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            const id = document.getElementById('deleteProductId').value;
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteProductModal')).hide();
+                    fetchProducts();
+                }
+            } catch(error) {
+                 console.error("Silme hatası", error);
+            }
+        });
+
+        fetchProducts();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teslimat Takvimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- FullCalendar kütüphanesi -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+      #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+      .fc-button-primary {
+        background-color: #212529 !important;
+        border-color: #212529 !important;
+      }
+      .fc-button-primary:hover {
+        background-color: #424649 !important;
+      }
+      .fc-event {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="products.html">Stok Yönetim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="products.html">Ürünler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="calendar.html">Takvim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="orders.html">Siparişler</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+             <li class="nav-item">
+              <a class="nav-link" href="login.html" onclick="logout()">Çıkış Yap <i class="bi bi-box-arrow-right"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5 mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Teslimat Takvimi</h2>
+        <!-- Buton kaldırıldı -->
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div id='calendar'></div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-12">
+           <div class="card">
+             <div class="card-body">
+               <h5 class="card-title"><i class="bi bi-info-circle"></i> Bilgi</h5>
+               <p class="card-text mb-0">
+                 <span class="badge bg-success me-2">Tamamlanan Teslimatlar</span> yeşil renkle,
+                 <span class="badge bg-primary ms-2 me-2">Planlanan Teslimatlar</span> mavi renkle gösterilmektedir.
+               </p>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Basit Oturum Kontrolü
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+          window.location.href = "home.html";
+      }
+
+      function logout() {
+          localStorage.removeItem('isLoggedIn');
+      }
+
+      const API_URL = "http://127.0.0.1:8000/api/deliveries";
+
+      document.addEventListener('DOMContentLoaded', async function() {
+        var calendarEl = document.getElementById('calendar');
+
+        // Takvimi başlat (önce boş olarak)
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          locale: 'tr',
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+          },
+          buttonText: {
+            today: 'Bugün'
+          },
+          events: [], // Veriler API'den gelecek
+          eventClick: function(info) {
+             const id = info.event.id;
+             // Detay sayfasına git
+             window.location.href = `delivery-details.html?id=${id}`;
+          }
+        });
+
+        calendar.render();
+
+        // Backend'den teslimat verilerini çek
+        try {
+            const response = await fetch(API_URL);
+            if(response.ok) {
+                const deliveries = await response.json();
+
+                // Gelen verileri FullCalendar formatına çevir
+                const events = deliveries.map(del => {
+                    let eventColor = del.status === "Tamamlandı" ? "#198754" : "#0d6efd"; // Yeşil veya Mavi
+                    let productName = del.products ? del.products.name : "Bilinmeyen Ürün";
+                    let sign = del.quantity > 0 ? "+" : "";
+
+                    return {
+                        id: del.id,
+                        title: `${del.status}: ${productName} (${sign}${del.quantity})`,
+                        start: del.date,
+                        color: eventColor
+                    };
+                });
+
+                // Takvime olayları ekle
+                calendar.addEventSource(events);
+            }
+        } catch (error) {
+            console.error("Takvim verileri çekilemedi:", error);
+            alert("Takvim verileri yüklenemedi. Backend bağlantısını kontrol edin.");
+        }
+      });
+    </script>
+  </body>
+</html>

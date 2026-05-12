@@ -1,0 +1,221 @@
+/* --- Google Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* --- Genel Değişkenler ve Temel Ayarlar --- */
+:root {
+  --primary-color: #4338ca; /* Modern Indigo */
+  --primary-hover: #3730a3;
+  --secondary-color: #10b981; /* Doğal Yeşil */
+  --bg-color: #f3f4f6; /* Çok hafif gri arkaplan */
+  --card-bg: #ffffff;
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+  --border-radius-lg: 12px;
+  --border-radius-sm: 8px;
+  --box-shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #111827;
+}
+
+/* --- Navbar (Üst Menü) --- */
+.navbar {
+    background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* --- Kartlar (Cards) --- */
+.card {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--box-shadow-hover);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+}
+
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg) !important;
+}
+
+/* --- Butonlar (Buttons) --- */
+.btn {
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+/* --- Tablolar (Tables) --- */
+.table-responsive {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-soft);
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 1.25rem;
+    border-bottom-color: #f3f4f6;
+}
+
+.table-dark {
+    --bs-table-bg: #f9fafb;
+    --bs-table-color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-dark th {
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: #fafafa;
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: #f3f4f6;
+}
+
+/* Tablo içindeki linkler */
+.table a {
+    color: var(--primary-color);
+    transition: color 0.2s;
+}
+
+.table a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline !important;
+}
+
+/* --- Form Elemanları --- */
+.form-control, .form-select {
+    border-radius: var(--border-radius-sm);
+    padding: 0.6rem 1rem;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.25);
+}
+
+/* --- Rozetler (Badges) --- */
+.badge {
+    padding: 0.4em 0.8em;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* --- Modallar --- */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+/* --- Özel Animasyonlar --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.container.mt-5 {
+    animation: fadeIn 0.4s ease-out;
+}

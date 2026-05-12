@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Teslimat Detayları</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="products.html">Stok Yönetim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="products.html">Ürünler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="calendar.html">Takvim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="orders.html">Siparişler</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+             <li class="nav-item">
+              <a class="nav-link" href="login.html" onclick="logout()">Çıkış Yap <i class="bi bi-box-arrow-right"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-0">Teslimat Detayları</h2>
+          <p class="text-muted" id="delivery-date-text">Tarih Yükleniyor...</p>
+        </div>
+        <a href="calendar.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Takvime Geri Dön</a>
+      </div>
+
+      <div class="card shadow-sm" id="deliveryDetailsCard" style="display: none;">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title mb-0 text-primary" id="delivery-title">Yükleniyor...</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">Durum:</div>
+            <div class="col-md-8" id="delivery-status">
+              <!-- JS ile doldurulacak -->
+            </div>
+          </div>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">İşlem Tipi:</div>
+            <div class="col-md-8" id="delivery-type">
+                <!-- JS ile doldurulacak -->
+            </div>
+          </div>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">Tedarikçi / Getiren Kişi:</div>
+            <div class="col-md-8" id="delivery-supplier">-</div>
+          </div>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">Ürün:</div>
+            <div class="col-md-8" id="delivery-product">-</div>
+          </div>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">Miktar:</div>
+            <div class="col-md-8 fs-5 fw-bold" id="delivery-quantity">-</div>
+          </div>
+          <hr>
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold text-muted">Notlar:</div>
+            <div class="col-md-8" id="delivery-notes">-</div>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-end py-3">
+          <button class="btn btn-success me-2" id="completeDeliveryBtn" style="display: none;" onclick="completeDelivery()"><i class="bi bi-check-circle"></i> Teslim Alındı / Tamamla</button>
+          <button class="btn btn-danger" onclick="deleteDelivery()"><i class="bi bi-trash"></i> İptal Et / Sil</button>
+        </div>
+      </div>
+
+      <div id="loadingMessage" class="text-center mt-5">
+          <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+          </div>
+          <p class="mt-2">Teslimat bilgileri yükleniyor...</p>
+      </div>
+      <div id="errorMessage" class="alert alert-danger mt-5" style="display: none;">
+          Belirtilen teslimat bulunamadı veya bir hata oluştu.
+      </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Basit Oturum Kontrolü
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+          window.location.href = "home.html";
+      }
+
+      function logout() {
+          localStorage.removeItem('isLoggedIn');
+      }
+
+      const API_BASE_URL = "http://127.0.0.1:8000/api";
+      let currentDeliveryId = null;
+      let deliveryDateObj = null;
+
+      document.addEventListener("DOMContentLoaded", async function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        currentDeliveryId = urlParams.get('id');
+
+        if (!currentDeliveryId) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/deliveries/${currentDeliveryId}`);
+            if (!response.ok) throw new Error("Teslimat bulunamadı");
+            const delivery = await response.json();
+
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('deliveryDetailsCard').style.display = 'block';
+
+            // Tarih ve Başlık
+            deliveryDateObj = new Date(delivery.date);
+            deliveryDateObj.setHours(0, 0, 0, 0);
+            const todayObj = new Date();
+            todayObj.setHours(0, 0, 0, 0);
+
+            document.getElementById('delivery-date-text').textContent = 'Tarih: ' + deliveryDateObj.toLocaleDateString('tr-TR');
+            document.getElementById('delivery-title').textContent = `${delivery.status}: ${delivery.products.name}`;
+
+            // Durum Badge ve "Teslim Alındı" butonu görünürlüğü
+            if (delivery.status === "Tamamlandı") {
+                document.getElementById('delivery-status').innerHTML = '<span class="badge bg-success fs-6">Tamamlandı</span>';
+                document.getElementById('completeDeliveryBtn').style.display = 'none'; // Zaten tamamlanmış
+            } else {
+                document.getElementById('delivery-status').innerHTML = '<span class="badge bg-primary fs-6">Planlandı</span>';
+
+                // GELECEK TARİH KONTROLÜ
+                if (deliveryDateObj <= todayObj) {
+                    document.getElementById('completeDeliveryBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('completeDeliveryBtn').style.display = 'none';
+                    document.getElementById('delivery-status').innerHTML += ' <small class="text-muted ms-2">(Teslimat günü gelmediği için onaylanamaz)</small>';
+                }
+            }
+
+            // İşlem Tipi
+            const typeBadge = delivery.type === "Stok Eklendi" ? '<span class="badge bg-success">Stok Eklendi</span>' : '<span class="badge bg-danger">Stok Çıktı</span>';
+            document.getElementById('delivery-type').innerHTML = typeBadge;
+
+            // Diğer Bilgiler
+            document.getElementById('delivery-supplier').textContent = delivery.supplier || "-";
+            document.getElementById('delivery-product').textContent = `${delivery.products.name} (${delivery.products.unit})`;
+
+            // Miktar
+            const sign = delivery.quantity > 0 ? "+" : "";
+            const qtyColor = delivery.quantity > 0 ? "text-success" : "text-danger";
+            document.getElementById('delivery-quantity').innerHTML = `<span class="${qtyColor}">${sign}${delivery.quantity}</span>`;
+
+            document.getElementById('delivery-notes').textContent = delivery.notes || "-";
+
+        } catch (error) {
+            console.error("Detay çekme hatası:", error);
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+      });
+
+      // Silme işlemi
+      async function deleteDelivery() {
+          if(!confirm("Bu teslimat/plan kaydını silmek istediğinize emin misiniz?")) return;
+
+          try {
+              const response = await fetch(`${API_BASE_URL}/deliveries/${currentDeliveryId}`, { method: 'DELETE' });
+              if(response.ok) {
+                  window.location.href = "calendar.html";
+              } else {
+                  alert("Silme işlemi başarısız oldu.");
+              }
+          } catch(error) {
+              console.error("Silme hatası:", error);
+          }
+      }
+
+      // Teslim Alındı (Tamamla) İşlemi
+      async function completeDelivery() {
+          if(!confirm("Bu teslimatın alındığını ve stoklara ekleneceğini onaylıyor musunuz?")) return;
+
+          try {
+              const response = await fetch(`${API_BASE_URL}/deliveries/${currentDeliveryId}/complete`, { method: 'PUT' });
+              if(response.ok) {
+                  alert("Teslimat başarıyla tamamlandı ve stok güncellendi!");
+                  window.location.reload();
+              } else {
+                  alert("İşlem başarısız oldu.");
+              }
+          } catch(error) {
+              console.error("Tamamlama hatası:", error);
+          }
+      }
+    </script>
+  </body>
+</html>

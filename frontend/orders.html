@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sipariş Takip Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="products.html">Stok Yönetim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="products.html">Ürünler</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="calendar.html">Takvim</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="orders.html">Siparişler</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+             <li class="nav-item">
+              <a class="nav-link" href="login.html" onclick="logout()">Çıkış Yap <i class="bi bi-box-arrow-right"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Müşteri Sipariş Takibi</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+          <i class="bi bi-plus-circle"></i> Yeni Sipariş Ekle
+        </button>
+      </div>
+
+      <!-- Arama / Filtreleme Alanı -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+              <div class="col-md-8">
+                <input type="text" id="searchInput" class="form-control" placeholder="Müşteri Adı veya Sipariş Numarası Ara...">
+              </div>
+              <div class="col-md-4">
+                 <button class="btn btn-outline-secondary w-100" onclick="searchOrders()"><i class="bi bi-search"></i> Ara</button>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle" id="ordersTable">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Sipariş No</th>
+              <th scope="col">Müşteri Adı</th>
+              <th scope="col">Ürün & Adet</th>
+              <th scope="col">Kargo Durumu</th>
+              <th scope="col">Tahmini Teslimat</th>
+              <th scope="col" class="text-center">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr><td colspan="6" class="text-center">Siparişler yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Yeni Sipariş Ekle Modal -->
+    <div class="modal fade" id="addOrderModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Yeni Sipariş Kaydı</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addOrderForm">
+              <div class="mb-3">
+                <label for="orderNumber" class="form-label">Sipariş Numarası</label>
+                <div class="input-group">
+                  <span class="input-group-text">SP-</span>
+                  <input type="text" class="form-control" id="orderNumber" required>
+                </div>
+                <div class="form-text">Müşterinin kargosunu sorgulayacağı (veya botun isteyeceği) kod.</div>
+              </div>
+              <div class="mb-3">
+                <label for="customerName" class="form-label">Müşteri Adı Soyadı</label>
+                <input type="text" class="form-control" id="customerName" required>
+              </div>
+
+              <!-- BOT İÇİN EKLENEN YENİ ALANLAR -->
+              <div class="row">
+                  <div class="col-md-8 mb-3">
+                    <label for="orderProduct" class="form-label">Satılan Ürün</label>
+                    <select class="form-select" id="orderProduct" required>
+                      <option value="" disabled selected>Ürünler yükleniyor...</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="orderQuantity" class="form-label">Adet/Miktar</label>
+                    <input type="number" class="form-control" id="orderQuantity" min="1" value="1" required>
+                  </div>
+              </div>
+              <div class="form-text text-warning mb-3"><i class="bi bi-info-circle"></i> Sipariş kaydedildiğinde seçilen ürünün stoğu otomatik olarak düşülecektir.</div>
+              <hr>
+
+              <div class="mb-3">
+                <label for="orderStatus" class="form-label">Durum</label>
+                <select class="form-select" id="orderStatus" required>
+                  <option value="Hazırlanıyor">Hazırlanıyor</option>
+                  <option value="Kargoya Verildi">Kargoya Verildi</option>
+                  <option value="Dağıtımda">Dağıtımda</option>
+                  <option value="Teslim Edildi">Teslim Edildi</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="estimatedDelivery" class="form-label">Tahmini Teslimat Tarihi (Opsiyonel)</label>
+                <input type="date" class="form-control" id="estimatedDelivery">
+              </div>
+              <div class="mb-3">
+                <label for="trackingLink" class="form-label">Kargo Takip Linki (Opsiyonel)</label>
+                <input type="url" class="form-control" id="trackingLink" placeholder="https://kargofirmasi.com/takip/...">
+              </div>
+              <div class="mb-3">
+                <label for="orderNotes" class="form-label">Notlar (Opsiyonel)</label>
+                <textarea class="form-control" id="orderNotes" rows="2"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="addOrderForm" class="btn btn-primary">Kaydet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sipariş Düzenle Modal -->
+    <div class="modal fade" id="editOrderModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Siparişi Güncelle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editOrderForm">
+              <input type="hidden" id="editOrderId">
+              <div class="mb-3">
+                <label class="form-label fw-bold">Sipariş No:</label>
+                <span id="editOrderNumberText" class="ms-2"></span>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Müşteri:</label>
+                <span id="editCustomerNameText" class="ms-2"></span>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-bold">Ürün & Miktar:</label>
+                <span id="editProductText" class="ms-2 text-primary"></span>
+              </div>
+              <hr>
+              <div class="mb-3">
+                <label for="editOrderStatus" class="form-label">Durum</label>
+                <select class="form-select" id="editOrderStatus" required>
+                  <option value="Hazırlanıyor">Hazırlanıyor</option>
+                  <option value="Kargoya Verildi">Kargoya Verildi</option>
+                  <option value="Dağıtımda">Dağıtımda</option>
+                  <option value="Teslim Edildi">Teslim Edildi</option>
+                  <option value="İptal Edildi">İptal Edildi (Kargo şirketi veya Müşteri iptali)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editEstimatedDelivery" class="form-label">Tahmini Teslimat Tarihi</label>
+                <input type="date" class="form-control" id="editEstimatedDelivery">
+              </div>
+              <div class="mb-3">
+                <label for="editTrackingLink" class="form-label">Kargo Takip Linki</label>
+                <input type="url" class="form-control" id="editTrackingLink">
+              </div>
+              <div class="mb-3">
+                <label for="editOrderNotes" class="form-label">Notlar</label>
+                <textarea class="form-control" id="editOrderNotes" rows="2"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="editOrderForm" class="btn btn-primary">Güncelle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sipariş Sil Onay Modal -->
+    <div class="modal fade" id="deleteOrderModal" tabindex="-1">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Emin misiniz?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Bu siparişi tamamen silmek istediğinize emin misiniz? (Silindiğinde satılan ürünün stoğu otomatik olarak geri eklenecektir.)
+            <p class="text-danger fw-bold mt-2" id="deleteOrderName"></p>
+            <input type="hidden" id="deleteOrderId">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteOrderBtn">Evet, Sil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+          window.location.href = "home.html";
+      }
+      function logout() {
+          localStorage.removeItem('isLoggedIn');
+      }
+
+      const API_BASE = "http://127.0.0.1:8000/api";
+      let allOrders = [];
+
+      document.addEventListener('DOMContentLoaded', async function () {
+        const tableBody = document.getElementById('ordersTableBody');
+
+        // Ürün listesini çek ve dropdown'ı doldur
+        try {
+            const prodRes = await fetch(`${API_BASE}/products`);
+            const products = await prodRes.json();
+            const select = document.getElementById('orderProduct');
+            select.innerHTML = '<option value="" disabled selected>Lütfen bir ürün seçin...</option>';
+            products.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} (Stok: ${p.stock})</option>`;
+            });
+        } catch(e) {
+            console.error("Ürünler yüklenemedi", e);
+        }
+
+        // Siparişleri Çek
+        async function fetchOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/orders`);
+                if (!response.ok) throw new Error("Ağ hatası");
+                allOrders = await response.json();
+                renderOrdersTable(allOrders);
+            } catch (error) {
+                console.error("Veri çekilemedi:", error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Veriler yüklenemedi. Backend bağlantısını kontrol edin.</td></tr>`;
+            }
+        }
+
+        // Tabloyu Çiz
+        function renderOrdersTable(dataToRender) {
+            tableBody.innerHTML = '';
+            if(dataToRender.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Sipariş bulunamadı.</td></tr>`;
+                return;
+            }
+
+            dataToRender.forEach(order => {
+                // Duruma göre badge rengi
+                let badgeClass = "bg-secondary";
+                if(order.status === "Hazırlanıyor") badgeClass = "bg-warning text-dark";
+                else if(order.status === "Kargoya Verildi") badgeClass = "bg-primary";
+                else if(order.status === "Dağıtımda") badgeClass = "bg-info text-dark";
+                else if(order.status === "Teslim Edildi") badgeClass = "bg-success";
+                else if(order.status === "İptal Edildi") badgeClass = "bg-danger";
+
+                // Tahmini Teslimat Formatı
+                let deliveryText = "-";
+                if (order.estimated_delivery) {
+                    deliveryText = new Date(order.estimated_delivery).toLocaleDateString('tr-TR');
+                }
+
+                // Tracking Link Butonu
+                let trackingButton = "";
+                if (order.tracking_link) {
+                    trackingButton = `<a href="${order.tracking_link}" target="_blank" class="btn btn-sm btn-outline-primary ms-2" title="Kargo Takip Linki"><i class="bi bi-box-seam"></i></a>`;
+                }
+
+                const productName = order.products ? order.products.name : "Bilinmeyen Ürün";
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td><strong>${order.order_number}</strong></td>
+                  <td>${order.customer_name}</td>
+                  <td><span class="text-primary fw-bold">${order.quantity}x</span> ${productName}</td>
+                  <td><span class="badge ${badgeClass}">${order.status}</span> ${trackingButton}</td>
+                  <td>${deliveryText}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-warning me-2" title="Durumu Güncelle" onclick="openEditOrderModal(${order.id})"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" title="Sil" onclick="openDeleteOrderModal(${order.id}, '${order.order_number}')"><i class="bi bi-trash"></i></button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Arama Fonksiyonu
+        window.searchOrders = function() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allOrders.filter(o =>
+                o.order_number.toLowerCase().includes(query) ||
+                o.customer_name.toLowerCase().includes(query)
+            );
+            renderOrdersTable(filtered);
+        };
+
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            if(e.key === 'Enter') searchOrders();
+        });
+
+        // YENİ SİPARİŞ EKLE
+        const addOrderForm = document.getElementById('addOrderForm');
+        addOrderForm.addEventListener('submit', async function(event) {
+          event.preventDefault();
+
+          // SP- prefix'ini kendimiz ekliyoruz
+          const fullOrderNum = "SP-" + document.getElementById('orderNumber').value;
+
+          const newOrder = {
+              order_number: fullOrderNum,
+              customer_name: document.getElementById('customerName').value,
+              product_id: parseInt(document.getElementById('orderProduct').value),
+              quantity: parseInt(document.getElementById('orderQuantity').value),
+              status: document.getElementById('orderStatus').value,
+              estimated_delivery: document.getElementById('estimatedDelivery').value,
+              tracking_link: document.getElementById('trackingLink').value,
+              notes: document.getElementById('orderNotes').value
+          };
+
+          try {
+              const response = await fetch(`${API_BASE}/orders`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(newOrder)
+              });
+              if(response.ok) {
+                  bootstrap.Modal.getInstance(document.getElementById('addOrderModal')).hide();
+                  addOrderForm.reset();
+                  fetchOrders();
+              } else {
+                  alert("Ekleme başarısız oldu. Sipariş numarasının benzersiz olduğundan emin olun.");
+              }
+          } catch (error) {
+              console.error("Ekleme hatası:", error);
+          }
+        });
+
+        // SİPARİŞ DÜZENLE
+        window.openEditOrderModal = function(id) {
+            const order = allOrders.find(o => o.id === id);
+            if(order) {
+                document.getElementById('editOrderId').value = order.id;
+                document.getElementById('editOrderNumberText').textContent = order.order_number;
+                document.getElementById('editCustomerNameText').textContent = order.customer_name;
+
+                const productName = order.products ? order.products.name : "Bilinmeyen Ürün";
+                document.getElementById('editProductText').textContent = `${order.quantity} Adet ${productName}`;
+
+                document.getElementById('editOrderStatus').value = order.status;
+                document.getElementById('editEstimatedDelivery').value = order.estimated_delivery || "";
+                document.getElementById('editTrackingLink').value = order.tracking_link || "";
+                document.getElementById('editOrderNotes').value = order.notes || "";
+
+                new bootstrap.Modal(document.getElementById('editOrderModal')).show();
+            }
+        };
+
+        const editOrderForm = document.getElementById('editOrderForm');
+        editOrderForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('editOrderId').value;
+            const updatedOrder = {
+                status: document.getElementById('editOrderStatus').value,
+                estimated_delivery: document.getElementById('editEstimatedDelivery').value,
+                tracking_link: document.getElementById('editTrackingLink').value,
+                notes: document.getElementById('editOrderNotes').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/orders/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedOrder)
+                });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+                    fetchOrders();
+                }
+            } catch(error) {
+                console.error("Güncelleme hatası", error);
+            }
+        });
+
+        // SİPARİŞ SİL
+        window.openDeleteOrderModal = function(id, orderNumber) {
+            document.getElementById('deleteOrderId').value = id;
+            document.getElementById('deleteOrderName').textContent = orderNumber;
+            new bootstrap.Modal(document.getElementById('deleteOrderModal')).show();
+        };
+
+        document.getElementById('confirmDeleteOrderBtn').addEventListener('click', async function() {
+            const id = document.getElementById('deleteOrderId').value;
+            try {
+                const response = await fetch(`${API_BASE}/orders/${id}`, { method: 'DELETE' });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteOrderModal')).hide();
+                    fetchOrders();
+                }
+            } catch(error) {
+                 console.error("Silme hatası", error);
+            }
+        });
+
+        // Başlangıç verilerini çek
+        fetchOrders();
+      });
+    </script>
+  </body>
+</html>
