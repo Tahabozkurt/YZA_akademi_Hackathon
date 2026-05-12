@@ -54,6 +54,43 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
+/* --- Navbar Dropdown Menü --- */
+.navbar-dark .dropdown-menu {
+    border: none;
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+.navbar-dark .dropdown-item {
+    padding: 0.7rem 1.5rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.navbar-dark .dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: var(--primary-color);
+}
+
+.navbar-dark .dropdown-item.text-danger:hover {
+    background-color: #fee2e2;
+    color: #dc2626 !important;
+}
+
+.navbar-dark .dropdown-divider {
+    border-top-color: #e5e7eb;
+    margin: 0.4rem 0;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* --- Kartlar (Cards) --- */
 .card {
     border: none;
@@ -92,6 +129,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+    color: white !important;
 }
 
 .btn-primary:hover {
@@ -208,6 +246,16 @@ h1, h2, h3, h4, h5, h6 {
     border-top: 1px solid #f3f4f6;
     background-color: #f9fafb;
     border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+/* --- Takvim (FullCalendar) Özelleştirmeleri --- */
+.fc-button-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+.fc-button-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
 }
 
 /* --- Özel Animasyonlar --- */

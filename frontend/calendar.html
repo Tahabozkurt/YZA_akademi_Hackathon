@@ -20,21 +20,23 @@
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       }
       .fc-button-primary {
-        background-color: #212529 !important;
-        border-color: #212529 !important;
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
       }
       .fc-button-primary:hover {
-        background-color: #424649 !important;
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
       }
       .fc-event {
         cursor: pointer;
+        border: none !important;
       }
     </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="products.html">Stok Yönetim Paneli</a>
+        <a class="navbar-brand" href="products.html"><i class="bi bi-box-seam me-2"></i> Stok Yönetim Paneli</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -50,11 +52,19 @@
               <a class="nav-link" href="orders.html">Siparişler</a>
             </li>
           </ul>
-          <ul class="navbar-nav ms-auto">
-             <li class="nav-item">
-              <a class="nav-link" href="login.html" onclick="logout()">Çıkış Yap <i class="bi bi-box-arrow-right"></i></a>
-            </li>
-          </ul>
+
+          <div class="d-flex ms-auto align-items-center">
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-shop me-1 text-white"></i> <span id="navStoreNameDropdown">Mağaza Adı</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2 text-muted"></i> Ayarlar</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="login.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -77,8 +87,9 @@
              <div class="card-body">
                <h5 class="card-title"><i class="bi bi-info-circle"></i> Bilgi</h5>
                <p class="card-text mb-0">
-                 <span class="badge bg-success me-2">Tamamlanan Teslimatlar</span> yeşil renkle,
-                 <span class="badge bg-primary ms-2 me-2">Planlanan Teslimatlar</span> mavi renkle gösterilmektedir.
+                 <span class="badge bg-success me-2 mt-2">Tamamlanan Teslimatlar</span> yeşil renkle,<br>
+                 <span class="badge bg-warning text-dark me-2 mt-2">Planlanan Teslimatlar (Gelecek)</span> sarı renkle,<br>
+                 <span class="badge bg-secondary me-2 mt-2">Geçmiş Teslimatlar (Süresi Geçmiş Planlar)</span> gri renkle gösterilmektedir.
                </p>
              </div>
            </div>
@@ -96,6 +107,16 @@
       function logout() {
           localStorage.removeItem('isLoggedIn');
       }
+
+      // Mağaza Adını Navbara Yükle
+      document.addEventListener('DOMContentLoaded', function() {
+          const storeProfileStr = localStorage.getItem('storeProfile');
+          if (storeProfileStr) {
+              const storeProfile = JSON.parse(storeProfileStr);
+              const storeNameSpan = document.getElementById('navStoreNameDropdown');
+              if(storeNameSpan) storeNameSpan.textContent = storeProfile.name;
+          }
+      });
 
       const API_URL = "http://127.0.0.1:8000/api/deliveries";
 
@@ -130,9 +151,33 @@
             if(response.ok) {
                 const deliveries = await response.json();
 
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
                 // Gelen verileri FullCalendar formatına çevir
                 const events = deliveries.map(del => {
-                    let eventColor = del.status === "Tamamlandı" ? "#198754" : "#0d6efd"; // Yeşil veya Mavi
+                    const deliveryDate = new Date(del.date);
+                    deliveryDate.setHours(0, 0, 0, 0);
+
+                    let eventColor;
+
+                    // Renk Mantığı:
+                    // 1. Tamamlandıysa her zaman yeşil
+                    if (del.status === "Tamamlandı") {
+                        eventColor = "#198754"; // Bootstrap success (Yeşil)
+                    }
+                    // 2. Tamamlanmamış ve tarihi geçmişse Gri (İptal/Unutulmuş/Gecikmiş)
+                    else if (deliveryDate < today) {
+                        eventColor = "#6c757d"; // Bootstrap secondary (Gri)
+                    }
+                    // 3. Tamamlanmamış ve tarihi bugün veya gelecekse Sarı (Planlandı)
+                    else {
+                        eventColor = "#ffc107"; // Bootstrap warning (Sarı)
+                    }
+
+                    // Metin rengini sarı için koyu, diğerleri için beyaz yapalım
+                    let textColor = eventColor === "#ffc107" ? "#000000" : "#ffffff";
+
                     let productName = del.products ? del.products.name : "Bilinmeyen Ürün";
                     let sign = del.quantity > 0 ? "+" : "";
 
@@ -140,7 +185,8 @@
                         id: del.id,
                         title: `${del.status}: ${productName} (${sign}${del.quantity})`,
                         start: del.date,
-                        color: eventColor
+                        backgroundColor: eventColor,
+                        textColor: textColor
                     };
                 });
 

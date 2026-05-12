@@ -51,8 +51,8 @@ class DeliveryCreate(BaseModel):
 class OrderCreate(BaseModel):
     order_number: str
     customer_name: str
-    product_id: int # YENİ ALAN: Sipariş hangi ürüne ait?
-    quantity: int   # YENİ ALAN: Kaç adet alındı?
+    product_id: int 
+    quantity: int   
     status: str
     estimated_delivery: Optional[str] = None
     tracking_link: Optional[str] = None
@@ -64,9 +64,54 @@ class OrderUpdate(BaseModel):
     tracking_link: Optional[str] = None
     notes: Optional[str] = None
 
+class StoreSettingsModel(BaseModel):
+    name: str
+    store_type: str
+    units: List[str]
+    contact_email: str
+    contact_phone: Optional[str] = None
+    rep_name: str
+
 @app.get("/")
 def read_root():
     return {"message": "Stok Yönetim API'sine Hoş Geldiniz. AI Bot Bağlantısı Hazır."}
+
+# --- MAĞAZA AYARLARI (STORE SETTINGS) ENDPOINTLERİ ---
+
+@app.get("/api/settings")
+async def get_store_settings():
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase bağlantısı kurulamadı.")
+    try:
+        response = supabase.table("store_settings").select("*").eq("id", 1).execute()
+        if not response.data:
+            return None
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/settings")
+async def update_store_settings(settings: StoreSettingsModel):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase bağlantısı kurulamadı.")
+    try:
+        data = settings.model_dump()
+        data["id"] = 1 # Hackathon prototipi için tek bir mağaza (ID=1) olduğunu varsayıyoruz
+        
+        # Önce kayıt var mı kontrol et
+        existing = supabase.table("store_settings").select("*").eq("id", 1).execute()
+        
+        if existing.data:
+            # Güncelle
+            response = supabase.table("store_settings").update(data).eq("id", 1).execute()
+        else:
+            # Yeni Ekle
+            response = supabase.table("store_settings").insert(data).execute()
+            
+        return response.data[0] if response.data else {"message": "Ayarlar kaydedildi"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 # --- ÜRÜN (PRODUCT) ENDPOINTLERİ ---
 

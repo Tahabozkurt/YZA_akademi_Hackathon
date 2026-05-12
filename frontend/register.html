@@ -30,7 +30,7 @@
       </div>
     </nav>
 
-    <div class="container mt-5">
+    <div class="container mt-5 mb-5">
       <div class="row justify-content-center">
         <div class="col-md-5">
           <div class="card shadow-sm">
@@ -76,8 +76,11 @@
                 return;
             }
 
-            alert("Kayıt başarılı! Lütfen giriş yapın.");
-            window.location.href = 'login.html';
+            // Doğrudan oturum açmış varsayıyoruz
+            localStorage.setItem('isLoggedIn', 'true');
+
+            alert("Kayıt başarılı! Lütfen mağaza ayarlarınızı tamamlayın.");
+            window.location.href = 'store-settings.html'; // Yeni eklenen mağaza ayarları sayfasına yönlendirme
         });
     </script>
   </body>
