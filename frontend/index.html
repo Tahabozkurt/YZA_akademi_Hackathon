@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tedarik ve Teslim Takvimi</title>
+  <!-- Bu kısım fullcalenderın çekilmesi-->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+  <!--CSS dosyası Pycharmda açılmadığı için bu şekilde ekledim burayı editleriz-->
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; }
+    header { padding: 20px 28px; background: #111827; color: white; }
+    main { padding: 24px; display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+    .card { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    .summary-grid { display: grid; gap: 12px; }
+    .metric { padding: 12px; border-radius: 12px; background: #f1f5f9; }
+    .metric strong { display: block; font-size: 26px; }
+    label { display: block; margin-top: 12px; font-size: 14px; font-weight: 700; }
+    select { width: 100%; padding: 10px; margin-top: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
+    #calendar { min-height: 720px; }
+    .legend { margin-top: 18px; font-size: 14px; line-height: 1.8; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 8px; }
+    dialog { border: none; border-radius: 16px; max-width: 520px; box-shadow: 0 20px 60px rgba(0, 0, 0, .2); }
+    dialog pre { background: #f8fafc; padding: 12px; border-radius: 12px; overflow: auto; }
+    button { border: none; border-radius: 10px; padding: 10px 14px; cursor: pointer; background: #111827; color: white; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Tedarik ve Teslim Takvimi</h1>
+    <p>Satış teslimleri, tedarik gelişleri, kargo teslimleri ve kritik stok uyarıları tek ekranda.</p>
+  </header>
+
+  <main>
+    <aside class="card">
+      <h2>Özet</h2>
+      <div class="summary-grid" id="summary"></div>
+
+      <label for="typeFilter">Event tipi</label>
+      <select id="typeFilter">
+        <option value="">Tümü</option>
+        <option value="sales_delivery">Satış teslimleri</option>
+        <option value="purchase_arrival">Tedarik gelişleri</option>
+        <option value="shipment_delivery">Kargo teslimleri</option>
+        <option value="stock_alert">Stok uyarıları</option>
+      </select>
+
+      <label for="statusFilter">Durum</label>
+      <select id="statusFilter">
+        <option value="">Tümü</option>
+        <option value="pending"></option>
+        <option value="preparing">preparing</option>
+        <option value="shipped">shipped</option>
+        <option value="delivered">delivered</option>
+        <option value="ordered">ordered</option>
+        <option value="in_transit">in_transit</option>
+        <option value="delayed">delayed</option>
+      </select>
+
+<!--Lejant renkler gösterge falan-->
+      <div class="legend">
+        <div><span class="dot" style="background:#2563eb"></span>Satış teslimi</div>
+        <div><span class="dot" style="background:#16a34a"></span>Tedarik gelişi</div>
+        <div><span class="dot" style="background:#9333ea"></span>Kargo teslimi</div>
+        <div><span class="dot" style="background:#dc2626"></span>Stok/gecikme uyarısı</div>
+      </div>
+
+    </aside>
+    <section class="card">
+      <div id="calendar"></div>
+    </section>
+  </main>
+
+  <dialog id="eventDialog">
+    <h2 id="dialogTitle"></h2>
+    <p id="dialogDate"></p>
+    <pre id="dialogProps"></pre>
+    <button onclick="document.getElementById('eventDialog').close()">Kapat</button>
+  </dialog>
+
+
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    let calendar;
+
+    async function loadSummary() {
+      const response = await fetch(`${API_BASE}/dashboard/summary`);
+      const data = await response.json();
+      const labels = {
+        pending_sales_orders: "Bekleyen satış",
+        delayed_sales_orders: "Geciken satış",
+        incoming_purchase_orders: "Bu hafta tedarik",
+        delayed_shipments: "Geciken kargo",
+        low_stock_products: "Kritik stok"
+      };
+      document.getElementById("summary").innerHTML = Object.entries(data)
+        .map(([key, value]) => `<div class="metric"><strong>${value}</strong>${labels[key]}</div>`)
+        .join("");
+    }
+
+    function buildEventsUrl(info) {
+      const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
+      const type = document.getElementById("typeFilter").value;
+      const status = document.getElementById("statusFilter").value;
+      if (type) params.append("type", type);
+      if (status) params.append("status", status);
+      return `${API_BASE}/calendar/events?${params.toString()}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      await loadSummary();
+      const calendarEl = document.getElementById("calendar");
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "tr",
+        height: "auto",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+        },
+        events: async function(info, successCallback, failureCallback) {
+          try {
+            const response = await fetch(buildEventsUrl(info));
+            successCallback(await response.json());
+          } catch (error) {
+            failureCallback(error);
+          }
+        },
+        eventClick: function(info) {
+          document.getElementById("dialogTitle").textContent = info.event.title;
+          document.getElementById("dialogDate").textContent = info.event.start.toLocaleString("tr-TR");
+          document.getElementById("dialogProps").textContent = JSON.stringify(info.event.extendedProps, null, 2);
+          document.getElementById("eventDialog").showModal();
+        }
+      });
+      calendar.render();
+
+      document.getElementById("typeFilter").addEventListener("change", () => calendar.refetchEvents());
+      document.getElementById("statusFilter").addEventListener("change", () => calendar.refetchEvents());
+    });
+  </script>
+</body>
+</html>
