@@ -15,11 +15,6 @@ YZA Akademi Hackathon projesi, **yapay zeka (AI) teknolojisini** kullanarak e-ti
 - **🤖 AI Sohbet Botu**: WhatsApp entegrasyonu ile müşteri desteği
 - **📊 Dashboard**: İstatistikler ve raporlar
 
----
-
-## 🏗️ Proje Yapısı
-
----
 
 ## 🛠️ Teknoloji Yığını
 
