@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ürün Stok Yönetimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="products.html"><i class="bi bi-box-seam me-2"></i> Stok Yönetim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link active" href="products.html">Ürünler</a></li>
+            <li class="nav-item"><a class="nav-link" href="calendar.html">Takvim</a></li>
+            <li class="nav-item"><a class="nav-link" href="orders.html">Siparişler</a></li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+             <div class="d-flex ms-auto align-items-center">
+                <div class="dropdown">
+                  <a class="nav-link dropdown-toggle text-white fw-bold px-3" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-shop me-1 text-white"></i> <span id="navStoreNameDropdown">Yükleniyor...</span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                    <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2 text-muted"></i> Ayarlar</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="home.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
+                  </ul>
+                </div>
+              </div>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Ürün Stok Yönetimi</h2>
+        <div>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-circle"></i> Yeni Ürün Ekle
+            </button>
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#planDeliveryModal">
+            <i class="bi bi-calendar-plus"></i> Teslimat Planla
+            </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle" id="productsTable">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Ürün Adı</th>
+              <th scope="col">Birim</th>
+              <th scope="col" class="text-center">Mevcut Stok</th>
+              <th scope="col">En Son Teslimat</th>
+              <th scope="col" class="text-center">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <tr><td colspan="5" class="text-center">Ürünler yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Yeni Ürün Ekle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addProductForm">
+              <div class="mb-3">
+                <label for="addProductName" class="form-label">Ürün Adı</label>
+                <input type="text" class="form-control" id="addProductName" required>
+              </div>
+              <div class="mb-3">
+                <label for="addProductUnit" class="form-label">Birim Seçin</label>
+                <select class="form-select dynamic-unit-select" id="addProductUnit" required>
+                  <option value="" disabled selected>Lütfen bir birim seçin...</option>
+                </select>
+                <div class="form-text"><a href="settings.html" class="text-decoration-none small">Birim listesini düzenle</a></div>
+              </div>
+              <div class="mb-3">
+                <label for="addProductStock" class="form-label">Başlangıç Stoğu (Mağazada olan)</label>
+                <input type="number" class="form-control" id="addProductStock" value="0" min="0" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="addProductForm" class="btn btn-primary">Kaydet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="planDeliveryModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Teslimat Planla</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="planDeliveryForm">
+              <div class="mb-3">
+                <label for="planProductSelect" class="form-label">Ürün Seçin</label>
+                <select class="form-select" id="planProductSelect" required>
+                  <option value="" disabled selected>Yükleniyor...</option>
+                </select>
+              </div>
+              <div class="row">
+                  <div class="col-6 mb-3">
+                    <label for="planDeliveryQuantity" class="form-label">Miktar</label>
+                    <input type="number" class="form-control" id="planDeliveryQuantity" min="1" required>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <label for="planDeliveryDate" class="form-label">Planlanan Tarih</label>
+                    <input type="date" class="form-control" id="planDeliveryDate" required>
+                  </div>
+              </div>
+
+              <div class="mb-3 form-check border-bottom pb-2">
+                <input type="checkbox" class="form-check-input" id="addSupplierCheck">
+                <label class="form-check-label fw-bold text-primary" for="addSupplierCheck">Tedarikçi eklemek ister misiniz?</label>
+              </div>
+
+              <div id="supplierFields" class="d-none bg-light p-3 rounded mb-3 border shadow-sm">
+                  <div class="mb-2">
+                    <label for="planSupplierName" class="form-label small fw-bold">Tedarikçi Firma / Kişi Adı</label>
+                    <input type="text" class="form-control form-control-sm" id="planSupplierName" placeholder="Örn: Ahmet Tarım">
+                  </div>
+                  <div>
+                    <label for="planSupplierPhone" class="form-label small fw-bold">İletişim Numarası</label>
+                    <input type="text" class="form-control form-control-sm" id="planSupplierPhone" placeholder="Örn: 0555 123 45 67">
+                  </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="planDeliveryNotes" class="form-label">Notlar (Opsiyonel)</label>
+                <textarea class="form-control" id="planDeliveryNotes" rows="2"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="planDeliveryForm" class="btn btn-primary">Planla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Ürünü Düzenle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editProductForm">
+              <input type="hidden" id="editProductId">
+              <div class="mb-3">
+                <label for="editProductName" class="form-label">Ürün Adı</label>
+                <input type="text" class="form-control" id="editProductName" required>
+              </div>
+              <div class="mb-3">
+                <label for="editProductUnit" class="form-label">Birim</label>
+                <select class="form-select dynamic-unit-select" id="editProductUnit" required>
+                  <option value="" disabled>Lütfen bir birim seçin...</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editProductStock" class="form-label">Mevcut Stok</label>
+                <input type="number" class="form-control" id="editProductStock" min="0" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <button type="submit" form="editProductForm" class="btn btn-primary">Güncelle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="deleteProductModal" tabindex="-1">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Emin misiniz?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Bu ürünü kalıcı olarak silmek istediğinizden emin misiniz?
+            <p class="text-danger fw-bold mt-2" id="deleteProductName"></p>
+            <input type="hidden" id="deleteProductId">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Evet, Sil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // --- KİMLİK KONTROLÜ BAŞLANGICI ---
+      const myUserId = localStorage.getItem('userId');
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+      if (isLoggedIn !== 'true' || !myUserId) {
+          window.location.href = "login.html";
+      }
+
+      function logout() {
+    // SaaS giriş bilgilerini temizle
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userId');
+    
+    // BOT HAFIZASINI SIFIRLA (Kritik Kısım)
+    sessionStorage.removeItem('aiChatHistory');
+    sessionStorage.removeItem('aiBotOpen');
+    
+    // Giriş sayfasına yönlendir
+    window.location.href = "home.html";
+}
+      // --- KİMLİK KONTROLÜ BİTİŞİ ---
+
+      const API_URL = "http://127.0.0.1:8000/api/products";
+      const DELIVERIES_API_URL = "http://127.0.0.1:8000/api/deliveries";
+      const SETTINGS_API_URL = "http://127.0.0.1:8000/api/settings";
+
+      document.addEventListener('DOMContentLoaded', async function () {
+
+        let storeUnits = ['Adet', 'Kilogram (Kg)'];
+
+        try {
+            // Ayarlar API'sine de güvenlik eklendi
+            const settingsRes = await fetch(`${SETTINGS_API_URL}?user_id=${myUserId}`);
+            if (settingsRes.ok) {
+                const settingsData = await settingsRes.json();
+                if (settingsData) {
+                    const storeNameSpan = document.getElementById('navStoreNameDropdown');
+                    if (storeNameSpan) storeNameSpan.textContent = settingsData.name;
+                    if (settingsData.units && settingsData.units.length > 0) {
+                        storeUnits = settingsData.units;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Ayarlar çekilemedi, localStorage deneniyor.", e);
+            let storeProfileStr = localStorage.getItem('storeProfile');
+            if (storeProfileStr) {
+                const storeProfile = JSON.parse(storeProfileStr);
+                document.getElementById('navStoreNameDropdown').textContent = storeProfile.name;
+                if(storeProfile.units && storeProfile.units.length > 0) {
+                    storeUnits = storeProfile.units;
+                }
+            }
+        }
+
+        const unitSelects = document.querySelectorAll('.dynamic-unit-select');
+        unitSelects.forEach(select => {
+             const firstOption = select.options[0];
+             select.innerHTML = '';
+             select.appendChild(firstOption);
+             storeUnits.forEach(unit => {
+                 select.innerHTML += `<option value="${unit}">${unit}</option>`;
+             });
+        });
+
+        const tableBody = document.getElementById('productsTableBody');
+        let productsData = [];
+
+        async function fetchProducts() {
+            try {
+                // SADECE GİRİŞ YAPAN KULLANICININ ÜRÜNLERİNİ ÇEK
+                const response = await fetch(`${API_URL}?user_id=${myUserId}`);
+                if (!response.ok) throw new Error("Ağ hatası");
+                productsData = await response.json();
+
+                // SADECE GİRİŞ YAPAN KULLANICININ TESLİMATLARINI ÇEK
+                const del_resp = await fetch(`${DELIVERIES_API_URL}?user_id=${myUserId}`);
+                const deliveries = await del_resp.json();
+
+                renderTable(deliveries);
+                updateProductSelect();
+            } catch (error) {
+                console.error("Veri çekilemedi:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Veriler yüklenemedi. Lütfen backend'in çalıştığından ve Supabase bağlantınızın olduğundan emin olun.</td></tr>`;
+            }
+        }
+
+        function renderTable(deliveries) {
+            tableBody.innerHTML = '';
+            if(productsData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center">Sizin mağazanıza ait kayıtlı ürün bulunamadı.</td></tr>`;
+                return;
+            }
+
+            productsData.forEach(product => {
+                let plannedAmount = 0;
+                if(deliveries && deliveries.length > 0) {
+                    const productDeliveries = deliveries.filter(d => d.product_id === product.id && d.status === "Planlandı" && d.type === "Stok Eklendi");
+                    productDeliveries.forEach(d => {
+                        plannedAmount += d.quantity;
+                    });
+                }
+
+                let stockClass = "text-center fw-bold";
+                if(product.stock === 0) stockClass += " text-danger bg-light";
+                else if (product.stock < 15) stockClass += " text-warning bg-light";
+
+                let stockText = `${product.stock}`;
+                if(plannedAmount > 0) {
+                    stockText += ` <span class="text-primary fs-6 fw-normal">(+${plannedAmount})</span>`;
+                }
+
+                let lastDeliveryText = product.last_delivery || "-";
+                if(lastDeliveryText === "None") lastDeliveryText = "-";
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td><a href="product-details.html?id=${product.id}" class="fw-bold text-decoration-none">${product.name}</a></td>
+                  <td>${product.unit}</td>
+                  <td class="${stockClass}">${stockText}</td>
+                  <td>${lastDeliveryText}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-warning me-2 edit-btn" title="Düzenle" onclick="openEditModal(${product.id})"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-sm btn-outline-danger delete-btn" title="Sil" onclick="openDeleteModal(${product.id}, '${product.name}')"><i class="bi bi-trash"></i></button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateProductSelect() {
+            const select = document.getElementById('planProductSelect');
+            select.innerHTML = '<option value="" disabled selected>Lütfen bir ürün seçin...</option>';
+            productsData.forEach(product => {
+                select.innerHTML += `<option value="${product.id}">${product.name} (${product.unit})</option>`;
+            });
+        }
+
+        const dateInput = document.getElementById('planDeliveryDate');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+
+        const addProductForm = document.getElementById('addProductForm');
+        addProductForm.addEventListener('submit', async function(event) {
+          event.preventDefault();
+
+          const newProduct = {
+              name: document.getElementById('addProductName').value,
+              unit: document.getElementById('addProductUnit').value,
+              stock: parseInt(document.getElementById('addProductStock').value),
+              last_delivery: "-"
+          };
+
+          try {
+              // ÜRÜN EKLERKEN KİMLİK BİLGİSİNİ GÖNDER
+              const response = await fetch(`${API_URL}?user_id=${myUserId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(newProduct)
+              });
+              if(response.ok) {
+                  bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                  addProductForm.reset();
+                  fetchProducts();
+              } else {
+                  alert("Ekleme başarısız oldu.");
+              }
+          } catch (error) {
+              console.error("Ekleme hatası:", error);
+          }
+        });
+
+        document.getElementById('addSupplierCheck').addEventListener('change', function() {
+            const supplierFields = document.getElementById('supplierFields');
+            if (this.checked) {
+                supplierFields.classList.remove('d-none');
+            } else {
+                supplierFields.classList.add('d-none');
+                document.getElementById('planSupplierName').value = '';
+                document.getElementById('planSupplierPhone').value = '';
+            }
+        });
+
+        const planDeliveryForm = document.getElementById('planDeliveryForm');
+        planDeliveryForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            let finalSupplierInfo = null;
+            if (document.getElementById('addSupplierCheck').checked) {
+                const sName = document.getElementById('planSupplierName').value.trim();
+                const sPhone = document.getElementById('planSupplierPhone').value.trim();
+                if (sName || sPhone) {
+                    finalSupplierInfo = sName;
+                    if (sPhone) {
+                        finalSupplierInfo += finalSupplierInfo ? ` (Tel: ${sPhone})` : `Tel: ${sPhone}`;
+                    }
+                }
+            }
+
+            const newDelivery = {
+                product_id: parseInt(document.getElementById('planProductSelect').value),
+                type: "Stok Eklendi",
+                quantity: parseInt(document.getElementById('planDeliveryQuantity').value),
+                date: document.getElementById('planDeliveryDate').value,
+                supplier: finalSupplierInfo,
+                notes: document.getElementById('planDeliveryNotes').value || null,
+                status: "Planlandı"
+            };
+
+            try {
+                // TESLİMAT EKLERKEN KİMLİK BİLGİSİNİ GÖNDER
+                const response = await fetch(`${DELIVERIES_API_URL}?user_id=${myUserId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newDelivery)
+                });
+
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('planDeliveryModal')).hide();
+                    planDeliveryForm.reset();
+                    document.getElementById('addSupplierCheck').checked = false;
+                    document.getElementById('addSupplierCheck').dispatchEvent(new Event('change'));
+                    alert("Teslimat başarıyla planlandı. Takvimden kontrol edebilirsiniz.");
+                    fetchProducts();
+                } else {
+                    const errorData = await response.json();
+                    console.error("Backend hatası:", errorData);
+                    alert("Planlama başarısız oldu: " + JSON.stringify(errorData));
+                }
+            } catch (error) {
+                console.error("Planlama hatası:", error);
+                alert("Planlama sırasında bir ağ hatası oluştu.");
+            }
+        });
+
+        window.openEditModal = function(id) {
+            const product = productsData.find(p => p.id === id);
+            if(product) {
+                document.getElementById('editProductId').value = product.id;
+                document.getElementById('editProductName').value = product.name;
+
+                const unitSelect = document.getElementById('editProductUnit');
+                let unitFound = false;
+                for (let i = 0; i < unitSelect.options.length; i++) {
+                    if (unitSelect.options[i].value === product.unit) {
+                        unitSelect.selectedIndex = i;
+                        unitFound = true;
+                        break;
+                    }
+                }
+
+                if(!unitFound) {
+                    const newOption = new Option(product.unit, product.unit);
+                    unitSelect.add(newOption);
+                    unitSelect.value = product.unit;
+                }
+
+                document.getElementById('editProductStock').value = product.stock;
+                new bootstrap.Modal(document.getElementById('editProductModal')).show();
+            }
+        };
+
+        const editProductForm = document.getElementById('editProductForm');
+        editProductForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('editProductId').value;
+            const updatedProduct = {
+                name: document.getElementById('editProductName').value,
+                unit: document.getElementById('editProductUnit').value,
+                stock: parseInt(document.getElementById('editProductStock').value)
+            };
+
+            try {
+                // ÜRÜN GÜNCELLERKEN KİMLİK BİLGİSİNİ GÖNDER
+                const response = await fetch(`${API_URL}/${id}?user_id=${myUserId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProduct)
+                });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                    fetchProducts();
+                }
+            } catch(error) {
+                console.error("Güncelleme hatası", error);
+            }
+        });
+
+        window.openDeleteModal = function(id, name) {
+            document.getElementById('deleteProductId').value = id;
+            document.getElementById('deleteProductName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        };
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            const id = document.getElementById('deleteProductId').value;
+            try {
+                // ÜRÜN SİLERKEN KİMLİK BİLGİSİNİ GÖNDER
+                const response = await fetch(`${API_URL}/${id}?user_id=${myUserId}`, { method: 'DELETE' });
+                if(response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteProductModal')).hide();
+                    fetchProducts();
+                }
+            } catch(error) {
+                 console.error("Silme hatası", error);
+            }
+        });
+
+        fetchProducts();
+      });
+    </script>
+<style>
+    /* Yüzen Buton Tasarımı */
+    .ai-chat-btn { 
+        position: fixed; bottom: 30px; right: 30px; border-radius: 50%; 
+        width: 65px; height: 65px; 
+        background: linear-gradient(135deg, #4338ca 0%, #10b981 100%); 
+        color: white; display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; box-shadow: 0 8px 25px rgba(67, 56, 202, 0.4); 
+        z-index: 2000; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    .ai-chat-btn:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 12px 30px rgba(67, 56, 202, 0.5); }
+    
+    /* Sohbet Penceresi */
+    .ai-chat-window { 
+        position: fixed; bottom: 110px; right: 30px; width: 380px; height: 550px; 
+        background: #ffffff; border-radius: 20px; 
+        box-shadow: 0 15px 50px rgba(0,0,0,0.15); 
+        display: none; flex-direction: column; z-index: 2000; 
+        overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+        animation: aiSlideUp 0.3s ease-out;
+    }
+    @keyframes aiSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .ai-chat-header { 
+        background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%); 
+        color: white; padding: 18px; font-weight: 700; 
+        display: flex; justify-content: space-between; align-items: center;
+        letter-spacing: 0.5px;
+    }
+    
+    .ai-chat-body { 
+        flex: 1; padding: 20px; overflow-y: auto; 
+        background-color: #f8fafc; display: flex; 
+        flex-direction: column; gap: 12px; scroll-behavior: smooth;
+    }
+
+    .ai-message { 
+        max-width: 85%; padding: 12px 16px; border-radius: 18px; 
+        font-size: 14px; line-height: 1.5; position: relative;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .ai-message.user { 
+        background: #4338ca; color: white; align-self: flex-end; 
+        border-bottom-right-radius: 4px;
+    }
+    .ai-message.bot { 
+        background: white; color: #334155; align-self: flex-start; 
+        border-bottom-left-radius: 4px; border: 1px solid #e2e8f0;
+    }
+
+    .ai-chat-footer { 
+        padding: 15px; border-top: 1px solid #f1f5f9; 
+        background: white; display: flex; gap: 8px; 
+    }
+    .ai-chat-input { 
+        flex: 1; border: 1.5px solid #e2e8f0; border-radius: 25px; 
+        padding: 10px 18px; outline: none; font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    .ai-chat-input:focus { border-color: #4338ca; }
+    
+    .ai-send-btn { 
+        background: #4338ca; color: white; border: none; 
+        border-radius: 50%; width: 42px; height: 42px; 
+        display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; transition: 0.2s;
+    }
+    .ai-send-btn:hover { background: #10b981; }
+
+    /* Yazıyor... Göstergesi */
+    .ai-dots { display: flex; gap: 4px; padding: 5px; }
+    .ai-dot { width: 7px; height: 7px; background: #94a3b8; border-radius: 50%; animation: aiBounce 1.4s infinite; }
+    .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes aiBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+    /* Scrollbar */
+    .ai-chat-body::-webkit-scrollbar { width: 5px; }
+    .ai-chat-body::-webkit-scrollbar-track { background: #f1f5f9; }
+    .ai-chat-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
+
+<div class="ai-chat-btn" id="aiMasterBtn" onclick="toggleAI()">
+    <i class="bi bi-robot fs-3"></i>
+</div>
+
+<div class="ai-chat-window" id="aiMasterWindow">
+    <div class="ai-chat-header">
+        <span><i class="bi bi-stars me-2"></i> Akademi Yapay Zeka</span>
+        <i class="bi bi-dash-lg" style="cursor:pointer" onclick="toggleAI()"></i>
+    </div>
+    <div class="ai-chat-body" id="aiMasterArea"></div>
+    <div class="ai-chat-footer">
+        <input type="text" id="aiMasterInp" class="ai-chat-input" placeholder="Bir şey sorun..." onkeypress="if(event.key==='Enter') sendAI()">
+        <button class="ai-send-btn" onclick="sendAI()"><i class="bi bi-send-fill"></i></button>
+    </div>
+</div>
+
+<script>
+    // --- AI HAFIZA VE OTURUM YÖNETİMİ ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadChatHistory();
+        checkBotWindowState();
+    });
+
+    function toggleAI() {
+        const win = document.getElementById('aiMasterWindow');
+        const isVisible = win.style.display === 'flex';
+        win.style.display = isVisible ? 'none' : 'flex';
+        // Pencere durumunu kaydet
+        sessionStorage.setItem('aiBotOpen', !isVisible);
+        if(!isVisible) document.getElementById('aiMasterInp').focus();
+    }
+
+    function checkBotWindowState() {
+        const isOpen = sessionStorage.getItem('aiBotOpen') === 'true';
+        if(isOpen) document.getElementById('aiMasterWindow').style.display = 'flex';
+    }
+
+    function loadChatHistory() {
+        const history = JSON.parse(sessionStorage.getItem('aiChatHistory')) || [];
+        const area = document.getElementById('aiMasterArea');
+        
+        if (history.length === 0) {
+            // İlk açılış mesajı
+            renderMessage("Selam Taha! 👋 Oturumun açıldı. Bugün neyi kontrol edelim?", "bot", false);
+        } else {
+            // Hafızadaki mesajları yükle
+            history.forEach(msg => renderMessage(msg.text, msg.sender, false));
+        }
+    }
+
+    function renderMessage(text, sender, shouldSave = true) {
+        const area = document.getElementById('aiMasterArea');
+        if(!area) return;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `ai-message ${sender} shadow-sm`;
+        
+        if (sender === 'bot') {
+            msgDiv.innerHTML = `<strong>Asistan:</strong><br>${text}`;
+        } else {
+            msgDiv.textContent = text;
+        }
+        
+        area.appendChild(msgDiv);
+        area.scrollTop = area.scrollHeight;
+
+        if (shouldSave) {
+            const history = JSON.parse(sessionStorage.getItem('aiChatHistory')) || [];
+            history.push({ text, sender });
+            sessionStorage.setItem('aiChatHistory', JSON.stringify(history));
+        }
+    }
+
+    async function sendAI() {
+        const inp = document.getElementById('aiMasterInp');
+        const area = document.getElementById('aiMasterArea');
+        const txt = inp.value.trim();
+        if(!txt) return;
+
+        renderMessage(txt, 'user');
+        inp.value = '';
+
+        // Yazıyor animasyonu
+        const tId = 't-' + Date.now();
+        const tDiv = document.createElement('div');
+        tDiv.className = 'ai-message bot';
+        tDiv.id = tId;
+        tDiv.innerHTML = '<div class="ai-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>';
+        area.appendChild(tDiv);
+        area.scrollTop = area.scrollHeight;
+
+        try {
+            const uid = localStorage.getItem('userId');
+            // Backend rotası backend/main.py içindeki /api/bot/chat
+            const res = await fetch('http://127.0.0.1:8000/api/bot/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: txt, user_id: uid })
+            });
+            const data = await res.json();
+            
+            if(document.getElementById(tId)) document.getElementById(tId).remove();
+            
+            // Backend "reply" anahtarını dönüyor
+            renderMessage(data.reply || 'Cevap alınamadı.', 'bot');
+        } catch (e) {
+            if(document.getElementById(tId)) document.getElementById(tId).remove();
+            renderMessage('API bağlantısı koptu. Backend terminalini kontrol et.', 'bot');
+        }
+    }
+</script>
+  </body>
+</html>

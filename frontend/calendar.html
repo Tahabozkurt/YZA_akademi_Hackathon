@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tedarik ve Teslim Takvimi - Stok Yönetim Paneli</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="css/style.css" rel="stylesheet"> <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+  <style>
+    /* TAKVİM ÖZEL STİLLERİ (STYLE.CSS İLE UYUMLU) */
+    .fc-card { 
+        background: var(--card-bg); 
+        border-radius: var(--border-radius-lg); 
+        padding: 20px; 
+        box-shadow: var(--box-shadow-soft); 
+    }
+    .metric-box { 
+        padding: 12px 16px; 
+        border-radius: var(--border-radius-sm); 
+        background: #f8f9fa; 
+        border-left: 4px solid var(--primary-color);
+        margin-bottom: 12px;
+        transition: transform 0.2s;
+    }
+    .metric-box:hover { transform: translateY(-2px); }
+    .metric-box strong { display: block; font-size: 24px; color: var(--text-dark); line-height: 1.2;}
+    .metric-box span { font-size: 13px; color: var(--text-muted); font-weight: 500;}
+    
+    /* Fullcalendar Renk Geçişleri */
+    .fc-button-primary {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+    .fc-button-primary:hover {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+    }
+    .fc-event { cursor: pointer; border: none; padding: 2px 4px; border-radius: 4px;}
+    
+    .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="products.html"><i class="bi bi-box-seam me-2"></i> Stok Yönetim Paneli</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="products.html">Ürünler</a></li>
+          <li class="nav-item"><a class="nav-link active" href="calendar.html">Takvim</a></li>
+          <li class="nav-item"><a class="nav-link" href="orders.html">Siparişler</a></li>
+        </ul>
+        <div class="d-flex ms-auto align-items-center">
+          <div class="dropdown">
+            <a class="nav-link dropdown-toggle text-white fw-bold px-3" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-shop me-1 text-white"></i> <span id="navStoreNameDropdown">Yükleniyor...</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+              <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2 text-muted"></i> Ayarlar</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="home.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4 px-4">
+      <div class="mb-4">
+        <h2 class="mb-1 fw-bold text-dark">Takvim ve Operasyonlar</h2>
+        <p class="text-muted">Satış teslimleri ve tedarik gelişlerini tek ekranda yönetin.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-3">
+          <div class="fc-card mb-4">
+            <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary"><i class="bi bi-bar-chart-steps me-2"></i> Özet Bilgiler</h5>
+            <div id="summary">
+                <div class="text-center text-primary spinner-border spinner-border-sm" role="status"></div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-funnel me-2"></i> Filtreler</h5>
+            
+            <label for="typeFilter" class="form-label fw-bold small text-muted mb-1">Etkinlik Tipi</label>
+            <select id="typeFilter" class="form-select form-select-sm mb-3 shadow-sm">
+              <option value="">Tümü</option>
+              <option value="sales_delivery">Satış Teslimleri</option>
+              <option value="purchase_arrival">Tedarik Gelişleri</option>
+            </select>
+
+            <label for="statusFilter" class="form-label fw-bold small text-muted mb-1">Durum</label>
+            <select id="statusFilter" class="form-select form-select-sm shadow-sm">
+              <option value="">Tümü</option>
+              <option value="Beklemede">Beklemede</option>
+              <option value="Hazırlanıyor">Hazırlanıyor</option>
+              <option value="Kargoya Verildi">Kargoya Verildi</option>
+              <option value="Teslim Edildi">Teslim Edildi</option>
+              <option value="Planlandı">Planlandı</option>
+              <option value="Tamamlandı">Tamamlandı</option>
+            </select>
+
+            <div class="mt-4 p-3 bg-light rounded border">
+              <h6 class="fw-bold mb-3 small text-muted text-uppercase">Renk Kodları</h6>
+              <div class="mb-2"><span class="legend-dot shadow-sm" style="background:#2563eb"></span> <span class="small fw-medium">Satış teslimi</span></div>
+              <div class="mb-2"><span class="legend-dot shadow-sm" style="background:#16a34a"></span> <span class="small fw-medium">Tedarik gelişi</span></div>
+              <div><span class="legend-dot shadow-sm" style="background:#ef4444"></span> <span class="small fw-medium">Gecikme uyarısı</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-9">
+          <div class="fc-card">
+            <div id="calendar"></div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div class="modal fade" id="eventDialogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-dark" id="dialogTitle">Detaylar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3 border-bottom pb-2">
+              <span class="badge bg-primary fs-6 shadow-sm" id="dialogDate">Tarih</span>
+          </div>
+          <div id="dialogProps" class="p-2"></div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // --- SAAS GÜVENLİK ---
+    const myUserId = localStorage.getItem('userId');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+    if (isLoggedIn !== 'true' || !myUserId) {
+        window.location.href = "login.html";
+    }
+
+    function logout() {
+    // SaaS giriş bilgilerini temizle
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userId');
+    
+    // BOT HAFIZASINI SIFIRLA (Kritik Kısım)
+    sessionStorage.removeItem('aiChatHistory');
+    sessionStorage.removeItem('aiBotOpen');
+    
+    // Giriş sayfasına yönlendir
+    window.location.href = "home.html";
+}
+
+    // Backend yolları "/api" olarak güncellenmişti
+    const API_BASE = "http://127.0.0.1:8000/api"; 
+    let calendar;
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      // MAĞAZA ADI ÇEKME
+      try {
+          const settingsRes = await fetch(`${API_BASE}/settings?user_id=${myUserId}`);
+          if (settingsRes.ok) {
+              const settingsData = await settingsRes.json();
+              if (settingsData && settingsData.name) {
+                  const storeNameSpan = document.getElementById('navStoreNameDropdown');
+                  if(storeNameSpan) storeNameSpan.textContent = settingsData.name;
+              }
+          }
+      } catch (e) {
+          console.log(e);
+      }
+
+      await loadSummary();
+
+      const calendarEl = document.getElementById("calendar");
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "tr",
+        height: 700,
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,listWeek"
+        },
+        events: async function(info, successCallback, failureCallback) {
+          try {
+            const response = await fetch(buildEventsUrl(info));
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            successCallback(await response.json());
+          } catch (error) {
+            console.error("Takvim hatası:", error);
+            failureCallback(error);
+          }
+        },
+        eventClick: function(info) {
+          const props = info.event.extendedProps;
+          
+          // Başlık ve Tarih
+          document.getElementById("dialogTitle").textContent = info.event.title;
+          document.getElementById("dialogDate").textContent = info.event.start.toLocaleDateString("tr-TR", { dateStyle: "long" });
+          
+          // JSON YERİNE ŞIK HTML TASARIMI
+          let htmlContent = `
+            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
+                <i class="bi bi-info-circle text-primary fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Durum</div>
+                    <div class="fw-bold text-dark fs-6">${props.display_status}</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
+                <i class="bi bi-clock-history text-warning fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Gecikme Durumu</div>
+                    <div class="fw-bold text-dark fs-6">${props.delay_text}</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
+                <i class="bi bi-box-seam text-success fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">İşlem Miktarı</div>
+                    <div class="fw-bold text-dark fs-6">${props.quantity}</div>
+                </div>
+            </div>
+          `;
+
+          // Takip linki varsa göster
+          if(props.tracking_link) {
+              htmlContent += `
+              <div class="mt-3">
+                  <a href="${props.tracking_link}" target="_blank" class="btn btn-outline-primary w-100 fw-bold">
+                      <i class="bi bi-truck me-2"></i> Kargo Takip Linkine Git
+                  </a>
+              </div>`;
+          }
+
+          document.getElementById("dialogProps").innerHTML = htmlContent;
+          
+          // Bootstrap Modalı Aç
+          const eventModal = new bootstrap.Modal(document.getElementById('eventDialogModal'));
+          eventModal.show();
+        }
+      });
+
+      calendar.render();
+
+      document.getElementById("typeFilter").addEventListener("change", () => calendar.refetchEvents());
+      document.getElementById("statusFilter").addEventListener("change", () => calendar.refetchEvents());
+    });
+
+    async function loadSummary() {
+      try {
+        const response = await fetch(`${API_BASE}/dashboard/summary?user_id=${myUserId}`);
+        const data = await response.json();
+        
+        // ÇÖZÜM: İNGİLİZCE KELİMELER TÜRKÇE SÖZLÜĞE EKLENDİ
+        const labels = {
+          pending_sales_orders: "Bekleyen Sipariş",
+          delayed_sales_orders: "Geciken Sipariş",
+          incoming_purchase_orders: "Yaklaşan Tedarik",
+          delayed_shipments: "Geciken Kargo",
+          low_stock_products: "Kritik Stok"
+        };
+        
+        document.getElementById("summary").innerHTML = Object.entries(data)
+          .map(([key, value]) => `
+            <div class="metric-box shadow-sm">
+                <strong>${value}</strong>
+                <span>${labels[key] ?? key}</span>
+            </div>
+          `).join("");
+      } catch (err) {
+        document.getElementById("summary").innerHTML = `<p class="text-danger small">Özet yüklenemedi.</p>`;
+        console.error("Dashboard hatası:", err);
+      }
+    }
+
+    function buildEventsUrl(info) {
+      const params = new URLSearchParams({ start: info.startStr, end: info.endStr, user_id: myUserId });
+      const type = document.getElementById("typeFilter").value;
+      const status = document.getElementById("statusFilter").value;
+      if (type) params.append("type", type);
+      if (status) params.append("status", status);
+      return `${API_BASE}/calendar/events?${params.toString()}`;
+    }
+  </script>
+<style>
+    /* Yüzen Buton Tasarımı */
+    .ai-chat-btn { 
+        position: fixed; bottom: 30px; right: 30px; border-radius: 50%; 
+        width: 65px; height: 65px; 
+        background: linear-gradient(135deg, #4338ca 0%, #10b981 100%); 
+        color: white; display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; box-shadow: 0 8px 25px rgba(67, 56, 202, 0.4); 
+        z-index: 2000; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    .ai-chat-btn:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 12px 30px rgba(67, 56, 202, 0.5); }
+    
+    /* Sohbet Penceresi */
+    .ai-chat-window { 
+        position: fixed; bottom: 110px; right: 30px; width: 380px; height: 550px; 
+        background: #ffffff; border-radius: 20px; 
+        box-shadow: 0 15px 50px rgba(0,0,0,0.15); 
+        display: none; flex-direction: column; z-index: 2000; 
+        overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+        animation: aiSlideUp 0.3s ease-out;
+    }
+    @keyframes aiSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .ai-chat-header { 
+        background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%); 
+        color: white; padding: 18px; font-weight: 700; 
+        display: flex; justify-content: space-between; align-items: center;
+        letter-spacing: 0.5px;
+    }
+    
+    .ai-chat-body { 
+        flex: 1; padding: 20px; overflow-y: auto; 
+        background-color: #f8fafc; display: flex; 
+        flex-direction: column; gap: 12px; scroll-behavior: smooth;
+    }
+
+    .ai-message { 
+        max-width: 85%; padding: 12px 16px; border-radius: 18px; 
+        font-size: 14px; line-height: 1.5; position: relative;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .ai-message.user { 
+        background: #4338ca; color: white; align-self: flex-end; 
+        border-bottom-right-radius: 4px;
+    }
+    .ai-message.bot { 
+        background: white; color: #334155; align-self: flex-start; 
+        border-bottom-left-radius: 4px; border: 1px solid #e2e8f0;
+    }
+
+    .ai-chat-footer { 
+        padding: 15px; border-top: 1px solid #f1f5f9; 
+        background: white; display: flex; gap: 8px; 
+    }
+    .ai-chat-input { 
+        flex: 1; border: 1.5px solid #e2e8f0; border-radius: 25px; 
+        padding: 10px 18px; outline: none; font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    .ai-chat-input:focus { border-color: #4338ca; }
+    
+    .ai-send-btn { 
+        background: #4338ca; color: white; border: none; 
+        border-radius: 50%; width: 42px; height: 42px; 
+        display: flex; justify-content: center; align-items: center; 
+        cursor: pointer; transition: 0.2s;
+    }
+    .ai-send-btn:hover { background: #10b981; }
+
+    /* Yazıyor... Göstergesi */
+    .ai-dots { display: flex; gap: 4px; padding: 5px; }
+    .ai-dot { width: 7px; height: 7px; background: #94a3b8; border-radius: 50%; animation: aiBounce 1.4s infinite; }
+    .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes aiBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+    /* Scrollbar */
+    .ai-chat-body::-webkit-scrollbar { width: 5px; }
+    .ai-chat-body::-webkit-scrollbar-track { background: #f1f5f9; }
+    .ai-chat-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
+
+<div class="ai-chat-btn" id="aiMasterBtn" onclick="toggleAI()">
+    <i class="bi bi-robot fs-3"></i>
+</div>
+
+<div class="ai-chat-window" id="aiMasterWindow">
+    <div class="ai-chat-header">
+        <span><i class="bi bi-stars me-2"></i> Akademi Yapay Zeka</span>
+        <i class="bi bi-dash-lg" style="cursor:pointer" onclick="toggleAI()"></i>
+    </div>
+    <div class="ai-chat-body" id="aiMasterArea"></div>
+    <div class="ai-chat-footer">
+        <input type="text" id="aiMasterInp" class="ai-chat-input" placeholder="Bir şey sorun..." onkeypress="if(event.key==='Enter') sendAI()">
+        <button class="ai-send-btn" onclick="sendAI()"><i class="bi bi-send-fill"></i></button>
+    </div>
+</div>
+
+<script>
+    // --- AI HAFIZA VE OTURUM YÖNETİMİ ---
+    document.addEventListener('DOMContentLoaded', () => {
+        loadChatHistory();
+        checkBotWindowState();
+    });
+
+    function toggleAI() {
+        const win = document.getElementById('aiMasterWindow');
+        const isVisible = win.style.display === 'flex';
+        win.style.display = isVisible ? 'none' : 'flex';
+        // Pencere durumunu kaydet
+        sessionStorage.setItem('aiBotOpen', !isVisible);
+        if(!isVisible) document.getElementById('aiMasterInp').focus();
+    }
+
+    function checkBotWindowState() {
+        const isOpen = sessionStorage.getItem('aiBotOpen') === 'true';
+        if(isOpen) document.getElementById('aiMasterWindow').style.display = 'flex';
+    }
+
+    function loadChatHistory() {
+        const history = JSON.parse(sessionStorage.getItem('aiChatHistory')) || [];
+        const area = document.getElementById('aiMasterArea');
+        
+        if (history.length === 0) {
+            // İlk açılış mesajı
+            renderMessage("Selam Taha! 👋 Oturumun açıldı. Bugün neyi kontrol edelim?", "bot", false);
+        } else {
+            // Hafızadaki mesajları yükle
+            history.forEach(msg => renderMessage(msg.text, msg.sender, false));
+        }
+    }
+
+    function renderMessage(text, sender, shouldSave = true) {
+        const area = document.getElementById('aiMasterArea');
+        if(!area) return;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `ai-message ${sender} shadow-sm`;
+        
+        if (sender === 'bot') {
+            msgDiv.innerHTML = `<strong>Asistan:</strong><br>${text}`;
+        } else {
+            msgDiv.textContent = text;
+        }
+        
+        area.appendChild(msgDiv);
+        area.scrollTop = area.scrollHeight;
+
+        if (shouldSave) {
+            const history = JSON.parse(sessionStorage.getItem('aiChatHistory')) || [];
+            history.push({ text, sender });
+            sessionStorage.setItem('aiChatHistory', JSON.stringify(history));
+        }
+    }
+
+    async function sendAI() {
+        const inp = document.getElementById('aiMasterInp');
+        const area = document.getElementById('aiMasterArea');
+        const txt = inp.value.trim();
+        if(!txt) return;
+
+        renderMessage(txt, 'user');
+        inp.value = '';
+
+        // Yazıyor animasyonu
+        const tId = 't-' + Date.now();
+        const tDiv = document.createElement('div');
+        tDiv.className = 'ai-message bot';
+        tDiv.id = tId;
+        tDiv.innerHTML = '<div class="ai-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>';
+        area.appendChild(tDiv);
+        area.scrollTop = area.scrollHeight;
+
+        try {
+            const uid = localStorage.getItem('userId');
+            // Backend rotası backend/main.py içindeki /api/bot/chat
+            const res = await fetch('http://127.0.0.1:8000/api/bot/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: txt, user_id: uid })
+            });
+            const data = await res.json();
+            
+            if(document.getElementById(tId)) document.getElementById(tId).remove();
+            
+            // Backend "reply" anahtarını dönüyor
+            renderMessage(data.reply || 'Cevap alınamadı.', 'bot');
+        } catch (e) {
+            if(document.getElementById(tId)) document.getElementById(tId).remove();
+            renderMessage('API bağlantısı koptu. Backend terminalini kontrol et.', 'bot');
+        }
+    }
+</script>
+</body>
+</html>
