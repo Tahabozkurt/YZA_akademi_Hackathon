@@ -32,12 +32,12 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 
   ## 🚀 Hızlı Başlangıç 
 1. Depoyu klonlayın : 
-  'git clone https://github.com/Tahabozkurt/YZA_akademi_Hackathon.git'
+  -'git clone https://github.com/Tahabozkurt/YZTA_akademi_Hackathon.git'
 2. Bağımlılıkları yükleyin : 
-  'pip install -r requirements.txt'
+  -'pip install -r requirements.txt'
 3. '.env' dosyanızı oluşturun (API keylerinizi buray ekleyin)
 4. Uygulamayı çalıştırın:
-   'uvicorn backend.main:app --reload'
+   -'uvicorn backend.main:app --reload'
   
 ## Projede Emeği Geçenler 
 
