@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tedarik ve Teslim Takvimi</title>
+
+    <!-- FULLCALENDAR -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <!-- Sayfa stilleri-->
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #4338ca;
+  --primary-hover: #3730a3;
+  --secondary-color: #10b981;
+  --bg-color: #f3f4f6;
+  --card-bg: #ffffff;
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+  --border-radius-lg: 12px;
+  --border-radius-sm: 8px;
+  --box-shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Takvim + dashboard sayfası için ek tema değişkenleri */
+  --calendar-page-bg: #f8fafc;
+  --calendar-soft-bg: #f1f5f9;
+  --calendar-border: #e2e8f0;
+  --calendar-text-main: #0f172a;
+  --sales-color: #2563eb;
+  --purchase-color: #16a34a;
+  --delay-color: #ef4444;
+  --planned-color: #f59e0b;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #111827;
+}
+
+.navbar {
+    background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.navbar-dark .dropdown-menu {
+    border: none;
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+.navbar-dark .dropdown-item {
+    padding: 0.7rem 1.5rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.navbar-dark .dropdown-item:hover {
+    background-color: #f3f4f6;
+    color: var(--primary-color);
+}
+
+.navbar-dark .dropdown-item.text-danger:hover {
+    background-color: #fee2e2;
+    color: #dc2626 !important;
+}
+
+.navbar-dark .dropdown-divider {
+    border-top-color: #e5e7eb;
+    margin: 0.4rem 0;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--box-shadow-hover);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+}
+
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg) !important;
+}
+
+.btn {
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+.table-responsive {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-soft);
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 1.25rem;
+    border-bottom-color: #f3f4f6;
+}
+
+.table-dark {
+    --bs-table-bg: #f9fafb;
+    --bs-table-color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-dark th {
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: #fafafa;
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: #f3f4f6;
+}
+
+.table a {
+    color: var(--primary-color);
+    transition: color 0.2s;
+}
+
+.table a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline !important;
+}
+
+.form-control, .form-select {
+    border-radius: var(--border-radius-sm);
+    padding: 0.6rem 1rem;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.25);
+}
+
+.badge {
+    padding: 0.4em 0.8em;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.fc-button-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+.fc-button-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.container.mt-5 {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* =========================================================
+   Tedarik ve Teslim Takvimi sayfası özel stilleri
+   ========================================================= */
+
+.calendar-page {
+    background-color: var(--calendar-page-bg);
+}
+
+.calendar-page * {
+    box-sizing: border-box;
+}
+
+.calendar-page .page-intro,
+.calendar-page .calendar-layout {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.page-intro {
+    padding: 1.5rem 1.75rem 0.5rem;
+}
+
+.page-intro h1 {
+    margin: 0 0 0.4rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.page-intro p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.calendar-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.calendar-layout .card {
+    background: var(--card-bg);
+    border: 1px solid rgba(226, 232, 240, 0.75);
+    padding: 1.125rem;
+}
+
+.calendar-sidebar {
+    align-self: start;
+}
+
+.calendar-sidebar h2,
+.calendar-card h2 {
+    margin: 0 0 0.875rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.summary-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.metric {
+    padding: 0.85rem;
+    border-radius: var(--border-radius-lg);
+    background: var(--calendar-soft-bg);
+    border: 1px solid #e5edf6;
+}
+
+.metric strong {
+    display: block;
+    color: #111827;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.metric span {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.calendar-sidebar label {
+    display: block;
+    margin-top: 0.9rem;
+    color: #111827;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.calendar-sidebar select,
+.calendar-filter-select {
+    width: 100%;
+    padding: 0.7rem 0.75rem;
+    margin-top: 0.4rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid #cbd5e1;
+    background-color: #fff;
+    color: var(--calendar-text-main);
+    outline: none;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.calendar-sidebar select:focus,
+.calendar-filter-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.18);
+}
+
+.legend {
+    margin-top: 1.1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.calendar-card {
+    min-width: 0;
+}
+
+#calendar {
+    min-height: 720px;
+}
+
+.calendar-card .fc {
+    color: var(--calendar-text-main);
+}
+
+.calendar-card .fc .fc-toolbar {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.calendar-card .fc .fc-toolbar-title {
+    color: #111827;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.calendar-card .fc .fc-button {
+    border-radius: 10px;
+    box-shadow: none !important;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.calendar-card .fc .fc-button-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.calendar-card .fc .fc-button-primary:hover,
+.calendar-card .fc .fc-button-primary:focus,
+.calendar-card .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.calendar-card .fc-theme-standard td,
+.calendar-card .fc-theme-standard th,
+.calendar-card .fc-theme-standard .fc-scrollgrid {
+    border-color: #e5e7eb;
+}
+
+.calendar-card .fc .fc-col-header-cell-cushion,
+.calendar-card .fc .fc-daygrid-day-number {
+    color: #374151;
+    text-decoration: none;
+}
+
+.calendar-card .fc .fc-day-today {
+    background-color: rgba(67, 56, 202, 0.08) !important;
+}
+
+.calendar-card .fc-event,
+.calendar-card .fc-daygrid-event {
+    cursor: pointer;
+    border: none !important;
+    border-radius: 7px;
+    padding: 2px 4px;
+    font-weight: 600;
+}
+
+.calendar-card .fc-event:hover {
+    filter: brightness(0.96);
+}
+
+.info-card {
+    margin-top: 1.125rem;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: 1.125rem;
+    box-shadow: var(--box-shadow-soft);
+    border: 1px solid rgba(226, 232, 240, 0.75);
+}
+
+.info-card p {
+    margin-bottom: 0;
+    line-height: 1.8;
+    color: var(--text-muted);
+}
+
+.info-card .badge,
+.calendar-badge {
+    display: inline-block;
+    padding: 0.35rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: white;
+    margin-top: 0.4rem;
+    margin-right: 0.5rem;
+}
+
+.badge-sales { background: var(--sales-color); }
+.badge-purchase { background: var(--purchase-color); }
+.badge-delay { background: var(--delay-color); }
+.badge-planned { background: var(--planned-color); color: #111827; }
+
+.event-dialog {
+    border: none;
+    border-radius: 16px;
+    max-width: 520px;
+    width: calc(100% - 32px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+    padding: 1.25rem;
+}
+
+.event-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.event-dialog h2 {
+    margin: 0 0 0.65rem;
+    font-size: 1.35rem;
+}
+
+.event-dialog p {
+    color: var(--text-muted);
+}
+
+.event-dialog pre {
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 12px;
+    overflow: auto;
+    white-space: pre-wrap;
+    border: 1px solid #e5e7eb;
+}
+
+.event-dialog button,
+.calendar-button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.event-dialog button:hover,
+.calendar-button:hover {
+    background: var(--primary-hover);
+}
+
+/* Bootstrap kullanmadan hazırlanan bağımsız navbar sürümü için destek */
+.standalone-navbar {
+    background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%);
+    color: white;
+    padding: 0.8rem 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.standalone-navbar .navbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.standalone-navbar .navbar-brand,
+.standalone-navbar .nav-link,
+.standalone-navbar .nav-store {
+    color: white;
+    text-decoration: none;
+}
+
+.standalone-navbar .navbar-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.standalone-navbar .navbar-nav {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.standalone-navbar .nav-link {
+    color: rgba(255,255,255,.78);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.standalone-navbar .nav-link.active,
+.standalone-navbar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.standalone-navbar .nav-store {
+    margin-left: auto;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .calendar-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .standalone-navbar .nav-store {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-intro,
+    .calendar-layout {
+        padding-left: 0.875rem;
+        padding-right: 0.875rem;
+    }
+
+    .standalone-navbar .navbar-inner,
+    .standalone-navbar .navbar-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .calendar-card .fc .fc-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+    </style>
+
+    <!-- DIŞ BAĞLANTI DEVRE DIŞI:
+         Önceki sayfadaki Bootstrap / Bootstrap Icons / css/style.css bağlantıları kapalı bırakıldı.
+         Üst menü ve kart tasarımları aşağıdaki dahili CSS ile veriliyor.
+
+         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+         <link href="css/style.css" rel="stylesheet">
+    -->
+
+  </head>
+
+  <body class="calendar-page">
+    <nav class="standalone-navbar">
+      <div class="navbar-inner">
+        <!-- SAYFA BAĞLANTISI DEVRE DIŞI:
+             Önceden products.html sayfasına gidiyordu.
+             <a class="navbar-brand" href="products.html">...</a>
+        -->
+        <a class="navbar-brand" href="#">▣ Stok Yönetim Paneli</a>
+
+        <ul class="navbar-nav">
+          <!-- SAYFA BAĞLANTILARI DEVRE DIŞI:
+               Bağımsız açıldığında başka HTML dosyalarına gitmesin diye href değerleri # yapıldı.
+          -->
+          <li><a class="nav-link" href="#">Ürünler</a></li>
+          <li><a class="nav-link active" href="#">Takvim</a></li>
+          <li><a class="nav-link" href="#">Siparişler</a></li>
+        </ul>
+
+        <div class="nav-store">⌂ <span id="navStoreNameDropdown">Demo Mağaza</span></div>
+      </div>
+    </nav>
+
+    <section class="page-intro">
+      <h1>Tedarik ve Teslim Takvimi</h1>
+      <p>Satış teslimleri, tedarik gelişleri ve gecikme uyarıları tek ekranda.</p>
+    </section>
+
+    <main class="calendar-layout">
+      <aside class="card calendar-sidebar">
+        <h2>Özet</h2>
+        <div class="summary-grid" id="summary"></div>
+
+        <label for="typeFilter">Etkinlik tipi</label>
+        <select id="typeFilter">
+          <option value="">Tümü</option>
+          <option value="sales_delivery">Satış teslimleri</option>
+          <option value="purchase_arrival">Tedarik gelişleri</option>
+          <option value="delay_alert">Gecikme uyarıları</option>
+          <!-- shipment_delivery: Shipment tablosu eklenince aktif edilecek -->
+          <!-- <option value="stock_alert">Stok uyarıları</option> reorder_threshold eklenince -->
+        </select>
+
+        <label for="statusFilter">Durum</label>
+        <select id="statusFilter">
+          <option value="">Tümü</option>
+          <!-- Sipariş durumları -->
+          <option value="Beklemede">Beklemede</option>
+          <option value="Hazırlanıyor">Hazırlanıyor</option>
+          <option value="Kargoya Verildi">Kargoya Verildi</option>
+          <option value="Teslim Edildi">Teslim Edildi</option>
+          <option value="Gecikmiş">Gecikmiş</option>
+          <option value="İptal Edildi">İptal Edildi</option>
+          <!-- Tedarik durumları -->
+          <option value="Planlandı">Planlandı</option>
+          <option value="Tamamlandı">Tamamlandı</option>
+        </select>
+
+        <div class="legend">
+          <div><span class="dot" style="background:#2563eb"></span>Satış teslimi</div>
+          <div><span class="dot" style="background:#16a34a"></span>Tedarik gelişi</div>
+          <div><span class="dot" style="background:#ef4444"></span>Gecikme uyarısı</div>
+          <div><span class="dot" style="background:#f59e0b"></span>Planlanan işlem</div>
+          <!-- <div><span class="dot" style="background:#9333ea"></span>Kargo teslimi</div> -->
+          <!-- <div><span class="dot" style="background:#dc2626"></span>Kritik stok</div> -->
+        </div>
+      </aside>
+
+      <section>
+        <div class="card calendar-card">
+          <div id="calendar"></div>
+        </div>
+
+        <div class="info-card">
+          <strong>ⓘ Bilgi</strong>
+          <p style="margin-bottom:0; line-height:1.8">
+            <span class="calendar-badge badge-sales">Satış teslimleri</span> mavi renkle,<br>
+            <span class="calendar-badge badge-purchase">Tedarik gelişleri</span> yeşil renkle,<br>
+            <span class="calendar-badge badge-delay">Gecikme uyarıları</span> kırmızı renkle,<br>
+            <span class="calendar-badge badge-planned">Planlanan işlemler</span> turuncu/sarı renkle gösterilmektedir.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="eventDialog" class="event-dialog">
+      <h2 id="dialogTitle"></h2>
+      <p id="dialogDate"></p>
+      <pre id="dialogProps"></pre>
+      <button type="button" onclick="document.getElementById('eventDialog').close()">Kapat</button>
+    </dialog>
+
+    <script>
+      /*
+        GİRİŞ KONTROLÜ DEVRE DIŞI:
+        Üst menü/tasarım korundu. Bu sayfada backend takvim API'leri aktif,
+        ancak localStorage giriş yönlendirmesi açık bırakılmadı.
+
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "home.html";
+        }
+      */
+
+      /*
+        LOCALSTORAGE MAĞAZA PROFİLİ OKUMA DEVRE DIŞI:
+        Navbar tasarımı sabit kalsın diye demo mağaza adı gösteriliyor.
+      */
+
+      const API_BASE = "http://127.0.0.1:8000";
+      let calendar;
+
+      const labels = {
+        pending_sales_orders: "Bekleyen sipariş",
+        delayed_sales_orders: "Geciken sipariş",
+        incoming_purchase_orders: "Yaklaşan tedarik",
+        delayed_shipments: "Geciken kargo",
+        low_stock_products: "Kritik stok"
+      };
+
+      async function loadSummary() {
+        try {
+          const response = await fetch(`${API_BASE}/dashboard/summary`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          document.getElementById("summary").innerHTML = Object.entries(data)
+            .map(([key, value]) => `<div class="metric"><strong>${value}</strong><span>${labels[key] ?? key}</span></div>`)
+            .join("");
+        } catch (err) {
+          document.getElementById("summary").innerHTML = `<p class="text-danger mb-0">Özet yüklenemedi.</p>`;
+          console.error("Dashboard hatası:", err);
+        }
+      }
+
+      function buildEventsUrl(info) {
+        const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
+        const type = document.getElementById("typeFilter").value;
+        const status = document.getElementById("statusFilter").value;
+        if (type) params.append("type", type);
+        if (status) params.append("status", status);
+        return `${API_BASE}/calendar/events?${params.toString()}`;
+      }
+
+      async function refreshCalendar() {
+        await loadSummary();
+        calendar.refetchEvents();
+      }
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        await loadSummary();
+
+        const calendarEl = document.getElementById("calendar");
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          locale: "tr",
+          height: "auto",
+          headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,listWeek"
+          },
+          buttonText: {
+            today: "Bugün",
+            month: "Ay",
+            week: "Hafta",
+            list: "Liste"
+          },
+          events: async function(info, successCallback, failureCallback) {
+            try {
+              const response = await fetch(buildEventsUrl(info));
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+              successCallback(await response.json());
+            } catch (error) {
+              console.error("Takvim hatası:", error);
+              failureCallback(error);
+            }
+          },
+          eventClick: function(info) {
+            const props = info.event.extendedProps;
+            document.getElementById("dialogTitle").textContent = info.event.title;
+            document.getElementById("dialogDate").textContent =
+              info.event.start.toLocaleDateString("tr-TR", { dateStyle: "long" });
+            document.getElementById("dialogProps").textContent =
+              JSON.stringify({
+                "Durum": props.display_status,
+                "Gecikme": props.delay_text,
+                "Miktar": props.quantity,
+                ...(props.tracking_link ? { "Takip Linki": props.tracking_link } : {})
+              }, null, 2);
+            document.getElementById("eventDialog").showModal();
+          }
+        });
+
+        calendar.render();
+
+        document.getElementById("typeFilter").addEventListener("change", refreshCalendar);
+        document.getElementById("statusFilter").addEventListener("change", refreshCalendar);
+      });
+    </script>
+  </body>
+</html>

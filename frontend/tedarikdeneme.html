@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tedarik Siparişleri Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #4338ca;
+            --primary-hover: #3730a3;
+            --secondary-color: #10b981;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --border-radius-lg: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Inter', Arial, sans-serif;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .standalone-navbar {
+            background: linear-gradient(90deg, #1e1b4b 0%, #4338ca 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-inner {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .navbar-brand {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+        }
+
+        .navbar-nav-custom {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-nav-custom .nav-link {
+            color: rgba(255,255,255,.85);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .navbar-nav-custom .nav-link:hover,
+        .navbar-nav-custom .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .nav-store {
+            margin-left: auto;
+            color: #fff;
+            font-weight: 700;
+            padding: .5rem .85rem;
+            border-radius: var(--border-radius-sm);
+            background: rgba(255,255,255,.08);
+            white-space: nowrap;
+        }
+
+        .page-shell {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 44px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title-block p {
+            color: var(--text-muted);
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--box-shadow-soft);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--box-shadow-hover);
+        }
+
+        .summary-box {
+            border: 0;
+            border-left: 4px solid var(--primary-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+
+        .summary-box.box-success { border-left-color: #198754; }
+        .summary-box.box-warning { border-left-color: #ffc107; }
+        .summary-box.box-danger  { border-left-color: #dc3545; }
+        .summary-box.box-info    { border-left-color: #0dcaf0; }
+
+        .summary-box .card-body {
+            padding: 1.15rem 1.25rem;
+        }
+
+        .small-muted {
+            font-size: .875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .filter-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-select, .form-control {
+            border-radius: var(--border-radius-sm);
+            padding: 0.6rem 1rem;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.25);
+        }
+
+        .accordion-item {
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden;
+        }
+
+        .accordion-button {
+            gap: .25rem;
+            font-weight: 500;
+        }
+
+        .accordion-button:focus { box-shadow: none; }
+        .accordion-button:not(.collapsed) { color: inherit; box-shadow: none; }
+        .accordion-body { color: var(--text-dark); }
+
+        .badge {
+            padding: 0.4em 0.8em;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .btn {
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            padding: 0.5rem 1.25rem;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white !important;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .empty-state {
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .cargo-header-pending   { background-color: #ebf3fb; border: 1px solid #c2def4; }
+        .cargo-badge-pending    { background-color: #61affe; color: white; min-width: 90px; }
+        .cargo-header-delivered { background-color: #e8f6f0; border: 1px solid #bce1d0; }
+        .cargo-badge-delivered  { background-color: #49cc90; color: white; min-width: 90px; }
+        .cargo-header-delayed   { background-color: #fbf1e6; border: 1px solid #f4d2c2; }
+        .cargo-badge-delayed    { background-color: #fca130; color: white; min-width: 90px; }
+
+        .supply-header-planned   { background-color: #e0f7fa; border: 1px solid #b2ebf2; }
+        .supply-badge-planned    { background-color: #00bcd4; color: white; min-width: 100px; }
+        .supply-header-completed { background-color: #e8f5e9; border: 1px solid #c8e6c9; }
+        .supply-badge-completed  { background-color: #4caf50; color: white; min-width: 100px; }
+        .supply-header-delayed   { background-color: #fbf1e6; border: 1px solid #f4d2c2; }
+        .supply-badge-delayed    { background-color: #fca130; color: white; min-width: 100px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-inner { flex-wrap: wrap; gap: 12px; }
+            .navbar-nav-custom { order: 3; width: 100%; overflow-x: auto; padding-bottom: 4px; }
+            .nav-store { margin-left: 0; }
+            .page-header { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+<nav class="standalone-navbar">
+    <div class="navbar-inner">
+        <!-- SAYFA BAĞLANTISI DEVRE DIŞI:
+             Önceden products.html sayfasına gidiyordu.
+             <a class="navbar-brand" href="products.html">...</a>
+        -->
+        <a class="navbar-brand" href="#"><i class="bi bi-box-seam me-2"></i>Stok Yönetim Paneli</a>
+
+        <ul class="navbar-nav-custom">
+            <!-- SAYFA BAĞLANTILARI DEVRE DIŞI:
+                 Bağımsız açıldığında başka HTML dosyalarına gitmesin diye href değerleri # yapıldı.
+            -->
+            <li><a class="nav-link" href="#">Ürünler</a></li>
+            <li><a class="nav-link" href="#">Takvim</a></li>
+            <li><a class="nav-link active" href="#">Siparişler</a></li>
+        </ul>
+
+        <div class="nav-store"><i class="bi bi-shop me-1"></i><span id="navStoreNameDropdown">Demo Mağaza</span></div>
+    </div>
+</nav>
+
+<div class="page-shell">
+    <div class="page-header">
+        <div class="page-title-block">
+            <h2 class="mb-1">Tedarik Siparişleri</h2>
+            <p class="mb-0">Tedarikçilerden beklenen ürünlerin durumlarını takip edin.</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card summary-box">
+                <div class="card-body">
+                    <div class="small-muted">Toplam</div>
+                    <div class="fs-3 fw-bold" id="totalCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-box box-info">
+                <div class="card-body">
+                    <div class="small-muted">Planlandı</div>
+                    <div class="fs-3 fw-bold" id="plannedCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-box box-success">
+                <div class="card-body">
+                    <div class="small-muted">Tamamlandı</div>
+                    <div class="fs-3 fw-bold" id="completedCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card summary-box box-danger">
+                <div class="card-body">
+                    <div class="small-muted">Gecikmiş</div>
+                    <div class="fs-3 fw-bold" id="delayedCount">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card filter-card">
+        <div class="row align-items-end g-3">
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label fw-semibold">Durum filtresi</label>
+                <select id="statusFilter" class="form-select">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Planlandı">Planlandı</option>
+                    <option value="Tamamlandı">Tamamlandı</option>
+                    <option value="Gecikmiş">Gecikmiş</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion" id="supplyAccordion"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_BASE = "http://127.0.0.1:8000";
+    let allDeliveries = [];
+
+    async function loadSupplyData() {
+        const container = document.getElementById("supplyAccordion");
+        container.innerHTML = `
+            <div class="text-center py-4" id="loadingIndicator">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Tedarik verileri çekiliyor...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`${API_BASE}/purchase-orders/`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            allDeliveries = await response.json();
+            renderList();
+        } catch (error) {
+            console.error("Veri çekme hatası:", error);
+            container.innerHTML = "<div class='alert alert-danger'>Veriler yüklenemedi. Backend bağlantısını kontrol edin.</div>";
+            updateSummaryCards([]);
+        }
+    }
+
+    function renderList() {
+        const container = document.getElementById("supplyAccordion");
+        const selectedStatus = document.getElementById("statusFilter").value;
+        const filtered = selectedStatus
+            ? allDeliveries.filter(d => d.status === selectedStatus)
+            : allDeliveries;
+
+        updateSummaryCards(allDeliveries);
+        container.innerHTML = "";
+
+        if (filtered.length === 0) {
+            container.innerHTML = "<div class='alert alert-secondary empty-state'>Bu kritere uygun tedarik bulunamadı.</div>";
+            return;
+        }
+
+        filtered.forEach((delivery, index) => {
+            let headerClass, badgeClass, badgeText;
+
+            if (delivery.status === "Tamamlandı") {
+                headerClass = "supply-header-completed";
+                badgeClass  = "supply-badge-completed";
+                badgeText   = "TAMAMLANDI";
+            } else if (delivery.status === "Gecikmiş") {
+                headerClass = "supply-header-delayed";
+                badgeClass  = "supply-badge-delayed";
+                badgeText   = "GECİKMİŞ";
+            } else {
+                headerClass = "supply-header-planned";
+                badgeClass  = "supply-badge-planned";
+                badgeText   = "PLANLANDI";
+            }
+
+            container.insertAdjacentHTML('beforeend', `
+                <div class="accordion-item mb-3 border-0 shadow-sm">
+                    <h2 class="accordion-header" id="heading${index}">
+                        <button class="accordion-button collapsed ${headerClass} rounded" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                            <span class="badge ${badgeClass} p-2 me-3 fs-6">${badgeText}</span>
+                            <span class="fw-bold me-2 text-dark">#${delivery.id}</span>
+                            <span class="text-secondary d-none d-md-inline"> — ${delivery.supplier || 'Tedarikçi Yok'}</span>
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#supplyAccordion">
+                        <div class="accordion-body bg-white border border-top-0 rounded-bottom">
+                            <div class="row">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <h6 class="text-primary"><i class="bi bi-box-seam me-1"></i> Sipariş Detayı</h6>
+                                    <p class="mb-1"><strong>Tedarikçi:</strong> ${delivery.supplier || '—'}</p>
+                                    <p class="mb-1"><strong>Tür:</strong> ${delivery.type}</p>
+                                    <p class="mb-1"><strong>Miktar:</strong> ${delivery.quantity} Adet</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="bi bi-info-circle me-1"></i> Lojistik & Notlar</h6>
+                                    <p class="mb-1"><strong>Tarih:</strong> ${delivery.date}</p>
+                                    <p class="mb-1"><strong>Durum:</strong> ${delivery.status}</p>
+                                    ${delivery.notes ? `
+                                    <div class="alert alert-light border mt-2 py-2 px-3 fst-italic">
+                                        <i class="bi bi-card-text text-muted me-2"></i> "${delivery.notes}"
+                                    </div>` : ""}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    function updateSummaryCards(data) {
+        document.getElementById("totalCount").innerText     = data.length;
+        document.getElementById("plannedCount").innerText   = data.filter(d => d.status === "Planlandı").length;
+        document.getElementById("completedCount").innerText = data.filter(d => d.status === "Tamamlandı").length;
+        document.getElementById("delayedCount").innerText   = data.filter(d => d.status === "Gecikmiş").length;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadSupplyData);
+    document.getElementById("statusFilter").addEventListener("change", renderList);
+</script>
+</body>
+</html>
