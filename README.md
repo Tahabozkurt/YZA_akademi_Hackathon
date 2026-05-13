@@ -37,7 +37,7 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
   - 'pip install -r requirements.txt'
 4. '.env' dosyanızı oluşturun (API keylerinizi buray ekleyin)
 5. Uygulamayı çalıştırın:
-   - 'uvicorn backend.main:app --reload'
+  - 'uvicorn backend.main:app --reload'
   
 ## Projede Emeği Geçenler 
 
