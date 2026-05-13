@@ -13,7 +13,7 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 - **📅 Takvim Yönetimi**: Önemli tarihler ve etkinlikleri planlama
 - **⚙️ Mağaza Ayarları**: İşletme yapılandırması ve tercihler
 - **🤖 AI Sohbet Botu**: Stok yönetim asistanı AI botu ile hızlı yanıt alabilme ve WhatApp botu ile müşterilere hızlı dönüt 
-- **📊 Dashboard**: İstatistikler ve raporlar
+
 
 
 ## 🛠️ Teknoloji Yığını
