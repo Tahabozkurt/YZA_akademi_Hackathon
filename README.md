@@ -29,12 +29,12 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 - **HTML5**: Semantik yapı
 - **CSS3**: Tasarım ve stil
 - **JavaScript**: Etkileşimli özellikler
-- 
+  
 ## Projede Emeği Geçenler 
 
 -Taha Bozkurt
-*https://www.linkedin.com/in/taha-bozkurt/
-*https://github.com/TahabozkurtBozkurt
+**https://www.linkedin.com/in/taha-bozkurt/
+**https://github.com/TahabozkurtBozkurt
 
 -Tuana Aydın 
 *www.linkedin.com/in/tuana-aydın-b4103320a
