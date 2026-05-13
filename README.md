@@ -33,13 +33,13 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 ## Projede Emeği Geçenler 
 
 -Taha Bozkurt
-**https://www.linkedin.com/in/taha-bozkurt/
-**https://github.com/TahabozkurtBozkurt
+**https://www.linkedin.com/in/taha-bozkurt/**
+**https://github.com/Tahabozkurt**
 
 -Tuana Aydın 
-*www.linkedin.com/in/tuana-aydın-b4103320a
-*https://github.com/tuanaydin
+**www.linkedin.com/in/tuana-aydın-b4103320a**
+**https://github.com/tuanaydin**
 
 -Duygu Soydaş 
-*www.linkedin.com/in/duygu-soydaş-32ab50333
-*https://github.com/duygusss
+**www.linkedin.com/in/duygu-soydaş-32ab50333**
+**https://github.com/duygusss**
