@@ -18,3 +18,31 @@ YZA Akademi Hackathon projesi, **yapay zeka (AI) teknolojisini** kullanarak e-ti
 ---
 
 ## 🏗️ Proje Yapısı
+
+---
+
+## 🛠️ Teknoloji Yığını
+
+### Backend
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) - Modern, hızlı web framework
+- **Veritabanı**: [Supabase](https://supabase.com/) - PostgreSQL ile ilişkisel veri tabanı
+- **ORM**: SQLModel - SQLAlchemy tabanlı SQL toolkit
+- **AI**: [LangChain](https://www.langchain.com/) + Google Generative AI - Yapay zeka entegrasyonu
+- **SMS**: [Twilio](https://www.twilio.com/) - WhatsApp entegrasyonu
+
+### Frontend
+- **HTML5**: Semantik yapı
+- **CSS3**: Tasarım ve stil
+- **JavaScript**: Etkileşimli özellikler
+- **Responsive Design**: Mobil uyumlu
+
+### DevOps
+- **Kontrol Sistemi**: Git & GitHub
+- **IDE**: JetBrains IDE (.idea klasörü)
+
+---
+
+## 📦 Bağımlılıklar
+
+Proje için gerekli Python paketleri:
+
