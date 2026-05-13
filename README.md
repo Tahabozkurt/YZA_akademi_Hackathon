@@ -29,6 +29,15 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 - **HTML5**: Semantik yapı
 - **CSS3**: Tasarım ve stil
 - **JavaScript**: Etkileşimli özellikler
+
+  ## 🚀 Hızlı Başlangıç 
+1. Depoyu klonlayın : 
+  'git clone https://github.com/Tahabozkurt/YZA_akademi_Hackathon.git'
+2. Bağımlılıkları yükleyin : 
+  'pip install -r requirements.txt'
+3. '.env' dosyanızı oluşturun (API keylerinizi buray ekleyin)
+4. Uygulamayı çalıştırın:
+   'uvicorn backend.main:app --reload'
   
 ## Projede Emeği Geçenler 
 
