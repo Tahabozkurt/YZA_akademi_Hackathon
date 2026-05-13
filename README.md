@@ -1,4 +1,4 @@
-# 🎯 YZA Akademi Hackathon (Takım 275)- Yapay Zeka Destekli Stok ve Kargo Yönetim Sistemi
+# 🎯 YZTA Akademi Hackathon (Takım 275)- Yapay Zeka Destekli Stok ve Kargo Yönetim Sistemi
 
 ## 📋 Proje Açıklaması
 
