@@ -1,4 +1,4 @@
-# 🎯 YZA Akademi Hackathon - Yapay Zeka Destekli Stok ve Kargo Yönetim Sistemi
+# 🎯 YZA Akademi Hackathon (Takım 275)- Yapay Zeka Destekli Stok ve Kargo Yönetim Sistemi
 
 ## 📋 Proje Açıklaması
 
@@ -29,4 +29,17 @@ YZTA Akademi Hackathon projesi için geliştirdiğimiz Stok Yönetim Paneli, **y
 - **HTML5**: Semantik yapı
 - **CSS3**: Tasarım ve stil
 - **JavaScript**: Etkileşimli özellikler
+- 
+## Projede Emeği Geçenler 
 
+-Taha Bozkurt
+*https://www.linkedin.com/in/taha-bozkurt/
+*https://github.com/TahabozkurtBozkurt
+
+-Tuana Aydın 
+*www.linkedin.com/in/tuana-aydın-b4103320a
+*https://github.com/tuanaydin
+
+-Duygu Soydaş 
+*www.linkedin.com/in/duygu-soydaş-32ab50333
+*https://github.com/duygusss
