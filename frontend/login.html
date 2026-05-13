@@ -17,9 +17,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="home.html">Ana Sayfa</a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link active" href="login.html">Giriş Yap</a>
             </li>
             <li class="nav-item">
@@ -36,7 +33,7 @@
           <div class="card shadow-sm">
             <div class="card-body p-4">
                 <h2 class="text-center mb-4">Giriş Yap</h2>
-                <!-- Gerçek backend auth olmadığı için form onsubmit ile js'e yönlendirildi -->
+
                 <form id="loginForm">
                   <div class="mb-3">
                     <label for="email" class="form-label">E-posta Adresi</label>
@@ -61,10 +58,9 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            // Şimdilik herhangi bir e-posta/şifre ile giriş yapıldığını varsayıyoruz.
-            // İleride buraya Supabase Auth eklenebilir.
+
             localStorage.setItem('isLoggedIn', 'true');
-            window.location.href = 'products.html'; // Giriş başarılıysa panele at
+            window.location.href = 'calendar.html';
         });
     </script>
   </body>

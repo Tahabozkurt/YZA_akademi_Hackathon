@@ -6,9 +6,9 @@
     <title>Teslimat Takvimi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- FullCalendar kütüphanesi -->
+
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
       #calendar {
@@ -55,13 +55,13 @@
 
           <div class="d-flex ms-auto align-items-center">
             <div class="dropdown">
-              <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle text-white fw-bold px-3" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-shop me-1 text-white"></i> <span id="navStoreNameDropdown">Mağaza Adı</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
                 <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2 text-muted"></i> Ayarlar</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="login.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
+                <li><a class="dropdown-item text-danger" href="home.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
               </ul>
             </div>
           </div>
@@ -72,7 +72,7 @@
     <div class="container mt-5 mb-5">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Teslimat Takvimi</h2>
-        <!-- Buton kaldırıldı -->
+
       </div>
 
       <div class="row">
@@ -89,7 +89,8 @@
                <p class="card-text mb-0">
                  <span class="badge bg-success me-2 mt-2">Tamamlanan Teslimatlar</span> yeşil renkle,<br>
                  <span class="badge bg-warning text-dark me-2 mt-2">Planlanan Teslimatlar (Gelecek)</span> sarı renkle,<br>
-                 <span class="badge bg-secondary me-2 mt-2">Geçmiş Teslimatlar (Süresi Geçmiş Planlar)</span> gri renkle gösterilmektedir.
+                 <span class="badge bg-secondary me-2 mt-2">Geçmiş Teslimatlar (Süresi Geçmiş Planlar)</span> gri renkle,<br>
+                 <span class="badge bg-danger me-2 mt-2">İptal Edilen Teslimatlar</span> kırmızı renkle gösterilmektedir.
                </p>
              </div>
            </div>
@@ -99,7 +100,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Basit Oturum Kontrolü
+
       if (localStorage.getItem('isLoggedIn') !== 'true') {
           window.location.href = "home.html";
       }
@@ -108,7 +109,7 @@
           localStorage.removeItem('isLoggedIn');
       }
 
-      // Mağaza Adını Navbara Yükle
+
       document.addEventListener('DOMContentLoaded', function() {
           const storeProfileStr = localStorage.getItem('storeProfile');
           if (storeProfileStr) {
@@ -123,7 +124,7 @@
       document.addEventListener('DOMContentLoaded', async function() {
         var calendarEl = document.getElementById('calendar');
 
-        // Takvimi başlat (önce boş olarak)
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'dayGridMonth',
           locale: 'tr',
@@ -135,17 +136,17 @@
           buttonText: {
             today: 'Bugün'
           },
-          events: [], // Veriler API'den gelecek
+          events: [],
           eventClick: function(info) {
              const id = info.event.id;
-             // Detay sayfasına git
+
              window.location.href = `delivery-details.html?id=${id}`;
           }
         });
 
         calendar.render();
 
-        // Backend'den teslimat verilerini çek
+
         try {
             const response = await fetch(API_URL);
             if(response.ok) {
@@ -154,28 +155,28 @@
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                // Gelen verileri FullCalendar formatına çevir
+
                 const events = deliveries.map(del => {
                     const deliveryDate = new Date(del.date);
                     deliveryDate.setHours(0, 0, 0, 0);
 
                     let eventColor;
 
-                    // Renk Mantığı:
-                    // 1. Tamamlandıysa her zaman yeşil
+
                     if (del.status === "Tamamlandı") {
-                        eventColor = "#198754"; // Bootstrap success (Yeşil)
+                        eventColor = "#198754"; // Yeşil
                     }
-                    // 2. Tamamlanmamış ve tarihi geçmişse Gri (İptal/Unutulmuş/Gecikmiş)
+                    else if (del.status === "İptal Edildi") {
+                        eventColor = "#dc3545"; // Kırmızı
+                    }
                     else if (deliveryDate < today) {
-                        eventColor = "#6c757d"; // Bootstrap secondary (Gri)
+                        eventColor = "#6c757d"; // Gri
                     }
-                    // 3. Tamamlanmamış ve tarihi bugün veya gelecekse Sarı (Planlandı)
                     else {
-                        eventColor = "#ffc107"; // Bootstrap warning (Sarı)
+                        eventColor = "#ffc107"; // Sarı
                     }
 
-                    // Metin rengini sarı için koyu, diğerleri için beyaz yapalım
+
                     let textColor = eventColor === "#ffc107" ? "#000000" : "#ffffff";
 
                     let productName = del.products ? del.products.name : "Bilinmeyen Ürün";
@@ -190,7 +191,7 @@
                     };
                 });
 
-                // Takvime olayları ekle
+
                 calendar.addEventSource(events);
             }
         } catch (error) {

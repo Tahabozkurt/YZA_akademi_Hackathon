@@ -6,7 +6,7 @@
     <title>Ürün Detayları - Stok Geçmişi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   </head>
   <body>
@@ -31,13 +31,13 @@
 
           <div class="d-flex ms-auto align-items-center">
             <div class="dropdown">
-              <a class="nav-link dropdown-toggle text-white fw-bold" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle text-white fw-bold px-3" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-shop me-1 text-white"></i> <span id="navStoreNameDropdown">Mağaza Adı</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
                 <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2 text-muted"></i> Ayarlar</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="login.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
+                <li><a class="dropdown-item text-danger" href="home.html" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Çıkış Yap</a></li>
               </ul>
             </div>
           </div>
@@ -54,7 +54,7 @@
         <a href="products.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Ürün Listesine Geri Dön</a>
       </div>
 
-      <!-- Ürün Bilgi Kartı -->
+
       <div class="card mb-4">
         <div class="card-body">
           <div class="row align-items-center">
@@ -70,7 +70,7 @@
         </div>
       </div>
 
-      <!-- Geçmiş Hareketler Tablosu -->
+
       <h4 class="mb-3">Geçmiş Hareketler</h4>
       <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <!-- Yeni Teslimat Ekle Modal -->
+
     <div class="modal fade" id="addDeliveryModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -115,7 +115,7 @@
                 <input type="date" class="form-control" id="deliveryDate" required>
               </div>
 
-              <!-- Geçmiş tarih seçildiğinde çıkacak olan stok güncelleme onayı (Dropdown stili) -->
+
               <div class="mb-3 d-none" id="pastDateStockOptions">
                 <label class="form-label text-warning fw-bold"><i class="bi bi-exclamation-triangle"></i> Geçmiş Tarihli İşlem</label>
                 <select class="form-select border-warning" id="updateStockDropdown">
@@ -127,10 +127,23 @@
                 </div>
               </div>
 
-              <div class="mb-3">
-                <label for="deliverySupplier" class="form-label">Tedarikçi / Getiren (Opsiyonel)</label>
-                <input type="text" class="form-control" id="deliverySupplier">
+
+              <div class="mb-3 form-check border-bottom pb-2">
+                <input type="checkbox" class="form-check-input" id="addSupplierCheckDetails">
+                <label class="form-check-label fw-bold text-primary" for="addSupplierCheckDetails">Tedarikçi eklemek ister misiniz?</label>
               </div>
+
+              <div id="supplierFieldsDetails" class="d-none bg-light p-3 rounded mb-3 border shadow-sm">
+                  <div class="mb-2">
+                    <label for="deliverySupplierName" class="form-label small fw-bold">Tedarikçi Firma / Kişi Adı</label>
+                    <input type="text" class="form-control form-control-sm" id="deliverySupplierName" placeholder="Örn: Ahmet Tarım">
+                  </div>
+                  <div>
+                    <label for="deliverySupplierPhone" class="form-label small fw-bold">İletişim Numarası</label>
+                    <input type="text" class="form-control form-control-sm" id="deliverySupplierPhone" placeholder="Örn: 0555 123 45 67">
+                  </div>
+              </div>
+
                <div class="mb-3">
                 <label for="deliveryNotes" class="form-label">Notlar (Opsiyonel)</label>
                 <textarea class="form-control" id="deliveryNotes" rows="2"></textarea>
@@ -145,7 +158,7 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
             <button type="submit" form="addDeliveryForm" class="btn btn-primary">Kaydet</button>
           </div>
         </div>
@@ -155,7 +168,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Basit Oturum Kontrolü
+
       if (localStorage.getItem('isLoggedIn') !== 'true') {
           window.location.href = "home.html";
       }
@@ -164,7 +177,7 @@
           localStorage.removeItem('isLoggedIn');
       }
 
-      // Mağaza Adını Navbara Yükle
+
       document.addEventListener('DOMContentLoaded', function() {
           const storeProfileStr = localStorage.getItem('storeProfile');
           if (storeProfileStr) {
@@ -177,7 +190,7 @@
       const API_BASE_URL = "http://127.0.0.1:8000/api";
 
       document.addEventListener('DOMContentLoaded', async function () {
-        // URL'den ürün ID'sini al
+
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
 
@@ -186,7 +199,7 @@
             return;
         }
 
-        // Tarih seçildiğinde geçmiş mi kontrol et
+
         const dateInput = document.getElementById('deliveryDate');
         const stockOptionsDiv = document.getElementById('pastDateStockOptions');
 
@@ -196,23 +209,35 @@
             const today = new Date();
             today.setHours(0,0,0,0);
 
-            // Eğer seçilen tarih bugünden küçükse (geçmişteyse) seçeneği göster
+
             if(selectedDate < today) {
                 stockOptionsDiv.classList.remove('d-none');
             } else {
                 stockOptionsDiv.classList.add('d-none');
-                document.getElementById('updateStockDropdown').value = "true"; // Eski haline getir
+                document.getElementById('updateStockDropdown').value = "true";
             }
         });
 
-        // Ürün Detaylarını Çek
+
+        document.getElementById('addSupplierCheckDetails').addEventListener('change', function() {
+            const supplierFields = document.getElementById('supplierFieldsDetails');
+            if (this.checked) {
+                supplierFields.classList.remove('d-none');
+            } else {
+                supplierFields.classList.add('d-none');
+                document.getElementById('deliverySupplierName').value = '';
+                document.getElementById('deliverySupplierPhone').value = '';
+            }
+        });
+
+
         async function fetchProductDetails() {
             try {
                 const response = await fetch(`${API_BASE_URL}/products/${productId}`);
                 if (!response.ok) throw new Error("Ürün bulunamadı");
                 const product = await response.json();
 
-                // Ürünün planlanan teslimatlarını hesapla
+
                 const del_resp = await fetch(`${API_BASE_URL}/products/${productId}/deliveries`);
                 const deliveries = await del_resp.json();
 
@@ -233,7 +258,7 @@
                 }
                 document.getElementById('productStock').innerHTML = stockText;
 
-                // Tabloyu render et
+
                 renderDeliveriesTable(deliveries);
 
             } catch (error) {
@@ -250,12 +275,20 @@
                  return;
              }
 
+
              deliveries.forEach(del => {
                  let badgeClass = del.type === "Stok Eklendi" ? "bg-success" : "bg-danger";
                  let qtySign = del.type === "Stok Eklendi" ? "+" : "-";
                  let qtyClass = del.type === "Stok Eklendi" ? "text-success" : "text-danger";
 
-                 let statusBadge = del.status === "Planlandı" ? `<span class="badge bg-warning text-dark ms-2">Planlandı</span>` : "";
+                 let statusBadge = "";
+                 if (del.status === "Planlandı") {
+                     statusBadge = `<span class="badge bg-warning text-dark ms-2">Planlandı</span>`;
+                 } else if (del.status === "İptal Edildi") {
+                     statusBadge = `<span class="badge bg-danger ms-2">İptal Edildi</span>`;
+                     qtyClass += " text-decoration-line-through text-muted"; // İptal edilenin üstü çizilir
+                     badgeClass = "bg-secondary";
+                 }
 
                  const row = document.createElement('tr');
                  row.innerHTML = `
@@ -268,28 +301,42 @@
              });
         }
 
-        // Sayfa yüklendiğinde günün tarihini forma otomatik yaz ve onChange'i tetikle
+
         document.getElementById('deliveryDate').valueAsDate = new Date();
         document.getElementById('deliveryDate').dispatchEvent(new Event('change'));
 
-        // Yeni Teslimat Ekle
+
         const addDeliveryForm = document.getElementById('addDeliveryForm');
         addDeliveryForm.addEventListener('submit', async function(event) {
             event.preventDefault();
 
             let qty = parseInt(document.getElementById('deliveryQuantity').value);
             const type = document.getElementById('deliveryType').value;
-            if (type === "Stok Çıktı") qty = -Math.abs(qty); // Çıktıysa sayıyı negatife çevir
+            if (type === "Stok Çıktı") qty = -Math.abs(qty);
 
-            // Dropdown'dan değeri al (string olarak geliyor, boolean'a çeviriyoruz)
+
             const shouldUpdateStock = document.getElementById('updateStockDropdown').value === "true";
+
+
+            let finalSupplierInfo = null;
+            if (document.getElementById('addSupplierCheckDetails').checked) {
+                const sName = document.getElementById('deliverySupplierName').value.trim();
+                const sPhone = document.getElementById('deliverySupplierPhone').value.trim();
+
+                if (sName || sPhone) {
+                    finalSupplierInfo = sName;
+                    if (sPhone) {
+                        finalSupplierInfo += finalSupplierInfo ? ` (Tel: ${sPhone})` : `Tel: ${sPhone}`;
+                    }
+                }
+            }
 
             const newDelivery = {
                 product_id: parseInt(productId),
                 type: type,
                 quantity: qty,
                 date: document.getElementById('deliveryDate').value,
-                supplier: document.getElementById('deliverySupplier').value || null,
+                supplier: finalSupplierInfo,
                 notes: document.getElementById('deliveryNotes').value || null,
                 status: document.getElementById('deliveryStatus').value,
                 update_stock: shouldUpdateStock // BACKEND'E BİLDİR
@@ -303,7 +350,12 @@
                 });
                 if(response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('addDeliveryModal')).hide();
+
+                    // Formu tamamen sıfırla (Checkbox dahil)
                     addDeliveryForm.reset();
+                    document.getElementById('addSupplierCheckDetails').checked = false;
+                    document.getElementById('addSupplierCheckDetails').dispatchEvent(new Event('change'));
+
                     document.getElementById('deliveryDate').valueAsDate = new Date();
                     document.getElementById('deliveryDate').dispatchEvent(new Event('change'));
                     fetchProductDetails();
@@ -317,7 +369,7 @@
             }
         });
 
-        // İlk yüklemeleri başlat
+
         fetchProductDetails();
       });
     </script>

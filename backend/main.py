@@ -96,20 +96,21 @@ async def update_store_settings(settings: StoreSettingsModel):
         raise HTTPException(status_code=500, detail="Supabase bağlantısı kurulamadı.")
     try:
         data = settings.model_dump()
-        data["id"] = 1 # Hackathon prototipi için tek bir mağaza (ID=1) olduğunu varsayıyoruz
         
         # Önce kayıt var mı kontrol et
         existing = supabase.table("store_settings").select("*").eq("id", 1).execute()
         
         if existing.data:
-            # Güncelle
+            # Güncelle (Update işleminde ID'yi tekrar göndermeye gerek yok, çakışma yapabilir)
             response = supabase.table("store_settings").update(data).eq("id", 1).execute()
         else:
-            # Yeni Ekle
+            # Yeni Ekle (Yeni eklerken ID'yi 1 olarak sabitle)
+            data["id"] = 1
             response = supabase.table("store_settings").insert(data).execute()
             
         return response.data[0] if response.data else {"message": "Ayarlar kaydedildi"}
     except Exception as e:
+        print(f"Store Settings Error: {e}") # Log for debugging
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -257,6 +258,38 @@ async def complete_delivery(delivery_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.put("/api/deliveries/{delivery_id}/cancel")
+async def cancel_delivery(delivery_id: int):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase bağlantısı kurulamadı.")
+    try:
+        # 1. Teslimatı al
+        delivery_response = supabase.table("deliveries").select("*").eq("id", delivery_id).execute()
+        if not delivery_response.data:
+             raise HTTPException(status_code=404, detail="Teslimat bulunamadı")
+             
+        delivery_data = delivery_response.data[0]
+        
+        if delivery_data["status"] == "İptal Edildi":
+            return {"message": "Zaten iptal edilmiş."}
+        
+        # 2. Eğer teslimat önceden "Tamamlandı" olarak işaretlenmişse ve stoğa etki etmişse stoğu geri al
+        if delivery_data["status"] == "Tamamlandı":
+            product_id = delivery_data["product_id"]
+            prod_response = supabase.table("products").select("stock").eq("id", product_id).execute()
+            if prod_response.data:
+                current_stock = prod_response.data[0]["stock"]
+                # Teslimat eklenmişse çıkart, satış olarak çıkmışsa ekle (ters işlem)
+                reverted_stock = current_stock - delivery_data["quantity"]
+                supabase.table("products").update({"stock": reverted_stock}).eq("id", product_id).execute()
+
+        # 3. Son olarak kaydın durumunu İptal Edildi yap
+        response = supabase.table("deliveries").update({"status": "İptal Edildi"}).eq("id", delivery_id).execute()
+        return {"message": "Teslimat iptal edildi ve stok düzenlendi"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.delete("/api/deliveries/{delivery_id}")
 async def delete_delivery(delivery_id: int):
     if not supabase:
@@ -275,9 +308,6 @@ async def delete_delivery(delivery_id: int):
             prod_response = supabase.table("products").select("stock").eq("id", product_id).execute()
             if prod_response.data:
                 current_stock = prod_response.data[0]["stock"]
-                # Teslimat eklenmişse çıkart, satış olarak çıkmışsa ekle (ters işlem)
-                # quantity değişkenimiz satışlarda zaten eksi (-) değer taşıdığı için
-                # current_stock - quantity yapmak işlemi tersine çevirir.
                 reverted_stock = current_stock - delivery_data["quantity"]
                 supabase.table("products").update({"stock": reverted_stock}).eq("id", product_id).execute()
 
