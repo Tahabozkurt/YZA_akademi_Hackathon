@@ -1,38 +1,52 @@
 ##Özetlerin Yer Aldığı Dashboard
-##
-##Tarih vs
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends
-
-from sqlmodel import Session, func, select
-from app.database import get_session
-from app.models import Product, PurchaseOrder, SalesOrder, Shipment
+from fastapi import APIRouter, HTTPException
+from app.database import supabase
 from app.schemas import DashboardSummary
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/summary", response_model=DashboardSummary)
-def dashboard_summary(session: Session = Depends(get_session)):
-    ##Mevcut zamanı çekip 14 gün ekledik
+def dashboard_summary():
     now = datetime.utcnow()
     next_week = now + timedelta(days=14)
 
-    ##Veri tabanından verileri çekme kısmı
-    ##Bekleyensatışlar
-    pending_sales = session.exec(select(func.count(SalesOrder.id)).where(SalesOrder.status.in_(["beklemede", "hazırlanıyor", "sevk edildi"]))).one()
-    ###Gecikmiş satışlar
-    delayed_sales = session.exec(select(func.count(SalesOrder.id)).where((SalesOrder.status == "gecikmiş") | (SalesOrder.promised_delivery_at < now))).one()
-    ##Gelen alımlar Purchase Order(po)
-    incoming_po = session.exec(select(func.count(PurchaseOrder.id)).where(PurchaseOrder.expected_arrival_at <= next_week, PurchaseOrder.status.in_(["planlandı", "sipariş verildi", "yolda/aktarmada"]))).one()
-    ##Gecikmiş sevkiyatlar
-    delayed_shipments = session.exec(select(func.count(Shipment.id)).where((Shipment.status == "gecikmiş") | (Shipment.estimated_delivery_at < now))).one()
-    ###Kritik stok uyarısı
-    low_stock = session.exec(select(func.count(Product.id)).where(Product.stock_quantity <= Product.reorder_threshold)).one()
+    # Bekleyen satışlar (orders tablosundan)
+    pending_sales_res = supabase.table("orders") \
+        .select("id", count="exact") \
+        .in_("status", ["Beklemede", "Hazırlanıyor", "Kargoya Verildi"]) \
+        .execute()
+    pending_sales = pending_sales_res.count or 0
+
+    # Gecikmiş satışlar
+    delayed_sales_res = supabase.table("orders") \
+        .select("id", count="exact") \
+        .eq("status", "Gecikmiş") \
+        .execute()
+    delayed_sales = delayed_sales_res.count or 0
+
+    # Yaklaşan teslimatlar (deliveries tablosundan, önümüzdeki 14 gün)
+    incoming_deliveries_res = supabase.table("deliveries") \
+        .select("id", count="exact") \
+        .lte("date", next_week.strftime("%Y-%m-%d")) \
+        .gte("date", now.strftime("%Y-%m-%d")) \
+        .in_("status", ["Planlandı"]) \
+        .execute()
+    incoming_deliveries = incoming_deliveries_res.count or 0
+
+    # Kritik stok uyarısı
+    # reorder_threshold kolonu products tablosuna eklendikten sonra aktif edilecek
+    # low_stock_res = supabase.table("products") \
+    #     .select("id", count="exact") \
+    #     .lt("stock", "reorder_threshold") \  # Supabase bu karşılaştırmayı desteklemiyor,
+    #     .execute()                            # bunun için Supabase'de bir view veya RPC fonksiyonu yazılması gerekecek
+    # low_stock = low_stock_res.count or 0
+    low_stock = 0  # Şimdilik 0, yukarıdaki kısım teyit edilince aktif edilecek
+
     return DashboardSummary(
         pending_sales_orders=pending_sales,
         delayed_sales_orders=delayed_sales,
-        incoming_purchase_orders=incoming_po,
-        delayed_shipments=delayed_shipments,
+        incoming_purchase_orders=incoming_deliveries,
+        delayed_shipments=0,  # Shipment tablosu eklenince aktif edilecek
         low_stock_products=low_stock,
     )
-##return olarak bunlar dönmüş olucak

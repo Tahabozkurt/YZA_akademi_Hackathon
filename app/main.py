@@ -2,17 +2,21 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.database import create_db_and_tables
-from app.routers import calendar, orders, products, dashboard, shipments, purchase_orders, suppliers
-from app.seed import seed_data
+#from app.database import create_db_and_tables
+#from app.routers import , orders, products, dashboard, shipments, purchase_orders, suppliers
+from app.routers import products,orders,purchase_orders,dashboard,calendar
 
 ##Kontrol edilicek
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    #seed_data()
+    print(" Uygulama başlatılıyor ve Supabase bağlantısı hazır.")
     yield
+    print(" Uygulama kapatılıyor.")
+
+###Eski sqllite kodları
+#    create_db_and_tables()
+    #seed_data()
+#    yield
 
 
 app = FastAPI(title="Takvim",lifespan=lifespan,)
@@ -31,10 +35,10 @@ app.add_middleware(
 app.include_router(calendar.router)
 app.include_router(dashboard.router)
 app.include_router(products.router)
-app.include_router(suppliers.router)
+#app.include_router(suppliers.router)
 app.include_router(orders.router)
 app.include_router(purchase_orders.router)
-app.include_router(shipments.router)
+#app.include_router(shipments.router)
 
 ##Kontrol çalışıyor mu vs
 @app.get("/")

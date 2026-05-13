@@ -1,32 +1,41 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-
-from app.database import get_session
+from app.database import supabase
 from app.models import Product
 
 router = APIRouter(prefix="/products", tags=["products"])
 
 ###Listele
 @router.get("/", response_model=list[Product])
-def list_products(session: Session = Depends(get_session)):
-    return session.exec(select(Product)).all()
+def list_products():
+    response = supabase.table("products").select("*").execute()
+    return response.data
 
 ##Ekle
 @router.post("/", response_model=Product, status_code=201)
-def create_product(product: Product, session: Session = Depends(get_session)):
-    session.add(product)
-    session.commit()
-    session.refresh(product)
-    return product
+def create_product(product: Product):
+    # model_dump() kullandığımızda 'unit', 'stock', 'last_delivery' gibi
+    # tüm alanlar SQL'deki karşılıklarıyla Supabase'e gider.
+    product_data = product.model_dump(exclude_unset=True)
+
+    try:
+        response = supabase.table("products").insert(product_data).execute()
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Ürün eklenemedi")
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 ###Güncelle
 @router.patch("/{product_id}/stock", response_model=Product)
-def update_stock(product_id: int, stock_quantity: int, session: Session = Depends(get_session)):
-    product = session.get(Product, product_id)
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    product.stock_quantity = stock_quantity
-    session.add(product)
-    session.commit()
-    session.refresh(product)
-    return product
+def update_stock(product_id: int, stock: int):
+    try:
+        response = supabase.table("products") \
+            .update({"stock": stock}) \
+            .eq("id", product_id) \
+            .execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

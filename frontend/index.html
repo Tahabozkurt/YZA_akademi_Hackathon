@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tedarik ve Teslim Takvimi</title>
-  <!-- Bu kısım fullcalenderın çekilmesi-->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-  <!--CSS dosyası Pycharmda açılmadığı için bu şekilde ekledim burayı editleriz-->
   <style>
     body { margin: 0; font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; }
     header { padding: 20px 28px; background: #111827; color: white; }
@@ -32,7 +30,7 @@
 <body>
   <header>
     <h1>Tedarik ve Teslim Takvimi</h1>
-    <p>Satış teslimleri, tedarik gelişleri, kargo teslimleri ve kritik stok uyarıları tek ekranda.</p>
+    <p>Satış teslimleri, tedarik gelişleri ve kritik stok uyarıları tek ekranda.</p>
   </header>
 
   <main>
@@ -40,36 +38,39 @@
       <h2>Özet</h2>
       <div class="summary-grid" id="summary"></div>
 
-      <label for="typeFilter">Event tipi</label>
+      <label for="typeFilter">Etkinlik tipi</label>
       <select id="typeFilter">
         <option value="">Tümü</option>
         <option value="sales_delivery">Satış teslimleri</option>
         <option value="purchase_arrival">Tedarik gelişleri</option>
-        <option value="shipment_delivery">Kargo teslimleri</option>
-        <option value="stock_alert">Stok uyarıları</option>
+        <!-- shipment_delivery: Shipment tablosu eklenince aktif edilecek -->
+        <!-- <option value="stock_alert">Stok uyarıları</option> reorder_threshold eklenince -->
       </select>
 
       <label for="statusFilter">Durum</label>
       <select id="statusFilter">
         <option value="">Tümü</option>
-        <option value="pending"></option>
-        <option value="preparing">preparing</option>
-        <option value="shipped">shipped</option>
-        <option value="delivered">delivered</option>
-        <option value="ordered">ordered</option>
-        <option value="in_transit">in_transit</option>
-        <option value="delayed">delayed</option>
+        <!-- Sipariş durumları (orders tablosu) -->
+        <option value="Beklemede">Beklemede</option>
+        <option value="Hazırlanıyor">Hazırlanıyor</option>
+        <option value="Kargoya Verildi">Kargoya Verildi</option>
+        <option value="Teslim Edildi">Teslim Edildi</option>
+        <option value="Gecikmiş">Gecikmiş</option>
+        <option value="İptal Edildi">İptal Edildi</option>
+        <!-- Tedarik durumları (deliveries tablosu) -->
+        <option value="Planlandı">Planlandı</option>
+        <option value="Tamamlandı">Tamamlandı</option>
       </select>
 
-<!--Lejant renkler gösterge falan-->
       <div class="legend">
         <div><span class="dot" style="background:#2563eb"></span>Satış teslimi</div>
         <div><span class="dot" style="background:#16a34a"></span>Tedarik gelişi</div>
-        <div><span class="dot" style="background:#9333ea"></span>Kargo teslimi</div>
-        <div><span class="dot" style="background:#dc2626"></span>Stok/gecikme uyarısı</div>
+        <div><span class="dot" style="background:#ef4444"></span>Gecikme uyarısı</div>
+        <!-- <div><span class="dot" style="background:#9333ea"></span>Kargo teslimi</div> -->
+        <!-- <div><span class="dot" style="background:#dc2626"></span>Kritik stok</div> -->
       </div>
-
     </aside>
+
     <section class="card">
       <div id="calendar"></div>
     </section>
@@ -82,25 +83,28 @@
     <button onclick="document.getElementById('eventDialog').close()">Kapat</button>
   </dialog>
 
-
-
   <script>
     const API_BASE = "http://127.0.0.1:8000";
     let calendar;
 
     async function loadSummary() {
-      const response = await fetch(`${API_BASE}/dashboard/summary`);
-      const data = await response.json();
-      const labels = {
-        pending_sales_orders: "Bekleyen satış",
-        delayed_sales_orders: "Geciken satış",
-        incoming_purchase_orders: "Bu hafta tedarik",
-        delayed_shipments: "Geciken kargo",
-        low_stock_products: "Kritik stok"
-      };
-      document.getElementById("summary").innerHTML = Object.entries(data)
-        .map(([key, value]) => `<div class="metric"><strong>${value}</strong>${labels[key]}</div>`)
-        .join("");
+      try {
+        const response = await fetch(`${API_BASE}/dashboard/summary`);
+        const data = await response.json();
+        const labels = {
+          pending_sales_orders: "Bekleyen sipariş",
+          delayed_sales_orders: "Geciken sipariş",
+          incoming_purchase_orders: "Yaklaşan tedarik",
+          delayed_shipments: "Geciken kargo",  // Shipment tablosu eklenince aktif
+          low_stock_products: "Kritik stok"    // reorder_threshold eklenince aktif
+        };
+        document.getElementById("summary").innerHTML = Object.entries(data)
+          .map(([key, value]) => `<div class="metric"><strong>${value}</strong>${labels[key] ?? key}</div>`)
+          .join("");
+      } catch (err) {
+        document.getElementById("summary").innerHTML = `<p style="color:red">Özet yüklenemedi.</p>`;
+        console.error("Dashboard hatası:", err);
+      }
     }
 
     function buildEventsUrl(info) {
@@ -114,6 +118,7 @@
 
     document.addEventListener("DOMContentLoaded", async function () {
       await loadSummary();
+
       const calendarEl = document.getElementById("calendar");
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -122,23 +127,34 @@
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+          right: "dayGridMonth,timeGridWeek,listWeek"
         },
         events: async function(info, successCallback, failureCallback) {
           try {
             const response = await fetch(buildEventsUrl(info));
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             successCallback(await response.json());
           } catch (error) {
+            console.error("Takvim hatası:", error);
             failureCallback(error);
           }
         },
         eventClick: function(info) {
+          const props = info.event.extendedProps;
           document.getElementById("dialogTitle").textContent = info.event.title;
-          document.getElementById("dialogDate").textContent = info.event.start.toLocaleString("tr-TR");
-          document.getElementById("dialogProps").textContent = JSON.stringify(info.event.extendedProps, null, 2);
+          document.getElementById("dialogDate").textContent =
+            info.event.start.toLocaleDateString("tr-TR", { dateStyle: "long" });
+          document.getElementById("dialogProps").textContent =
+            JSON.stringify({
+              "Durum": props.display_status,
+              "Gecikme": props.delay_text,
+              "Miktar": props.quantity,
+              ...(props.tracking_link ? { "Takip Linki": props.tracking_link } : {})
+            }, null, 2);
           document.getElementById("eventDialog").showModal();
         }
       });
+
       calendar.render();
 
       document.getElementById("typeFilter").addEventListener("change", () => calendar.refetchEvents());

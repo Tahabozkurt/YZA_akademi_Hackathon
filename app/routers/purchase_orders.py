@@ -1,38 +1,40 @@
 ###Tedarikle ilgili işlemler
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-
-from app.database import get_session
-from app.models import PurchaseOrder, PurchaseStatus
+from fastapi import APIRouter, HTTPException
+from app.database import supabase
+from app.models import Delivery
 from app.schemas import StatusUpdate
 
 router = APIRouter(prefix="/purchase-orders", tags=["purchase orders"])
 
-###Siparişleri çek
-@router.get("/", response_model=list[PurchaseOrder])
-def list_purchase_orders(session: Session = Depends(get_session)):
-    return session.exec(select(PurchaseOrder)).all()
+# Teslimatları listele
+@router.get("/", response_model=list[Delivery])
+def list_deliveries():
+    response = supabase.table("deliveries").select("*").execute()
+    return response.data
 
-###sipariş ekle
-@router.post("/", response_model=PurchaseOrder, status_code=201)
-def create_purchase_order(order: PurchaseOrder, session: Session = Depends(get_session)):
-    session.add(order)
-    session.commit()
-    session.refresh(order)
-    return order
-
-###Tedarik güncelle
-@router.patch("/{order_id}/status", response_model=PurchaseOrder)
-def update_purchase_order_status(order_id: int, payload: StatusUpdate, session: Session = Depends(get_session)):
-    order = session.get(PurchaseOrder, order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+# Yeni teslimat ekle
+@router.post("/", response_model=Delivery, status_code=201)
+def create_delivery(delivery: Delivery):
+    data = delivery.model_dump(exclude_unset=True, mode='json')
     try:
-        order.status = PurchaseStatus(payload.status)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid purchase order status") from exc
-    session.add(order)
-    session.commit()
-    session.refresh(order)
-    return order
+        response = supabase.table("deliveries").insert(data).execute()
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Teslimat oluşturulamadı")
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Teslimat durumu güncelle
+@router.patch("/{delivery_id}/status", response_model=Delivery)
+def update_delivery_status(delivery_id: int, payload: StatusUpdate):
+    try:
+        response = supabase.table("deliveries") \
+            .update({"status": payload.status}) \
+            .eq("id", delivery_id) \
+            .execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Teslimat bulunamadı")
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Güncelleme hatası: {str(e)}")

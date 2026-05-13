@@ -1,15 +1,15 @@
-from datetime import datetime
-from typing import Any, Literal, Optional
+from datetime import datetime,date
+from typing import Any, Literal, Optional,Union
 from pydantic import BaseModel
 
-CalendarEventType = Literal["sales_delivery", "purchase_arrival", "shipment_delivery", "stock_alert"]
 
 
 class CalendarEvent(BaseModel):
     id: str
     title: str
-    start: datetime
-    end: datetime##Zorunlu tuttuk
+    start: Union[datetime, date, str]
+    end: Optional[Union[datetime, date, str]] = None
+    allDay: bool = True
     color: str
     extendedProps: dict[str, Any] = {}
 
