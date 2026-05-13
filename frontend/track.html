@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kargom Nerede? - Sipariş Takibi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+      body {
+          background-color: #f8f9fa;
+      }
+      .track-container {
+          max-width: 600px;
+          margin: 100px auto;
+      }
+      .status-card {
+          border-left: 5px solid #0d6efd;
+      }
+      .status-hazirlaniyor { border-left-color: #ffc107; }
+      .status-kargoda { border-left-color: #0d6efd; }
+      .status-dagitimda { border-left-color: #0dcaf0; }
+      .status-teslim { border-left-color: #198754; }
+      .status-iptal { border-left-color: #dc3545; }
+    </style>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+          <i class="bi bi-box-seam me-2"></i> Kargo Takip Sistemi
+        </a>
+      </div>
+    </nav>
+
+    <div class="container track-container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">Kargom Nerede?</h2>
+        <p class="text-muted">Sipariş numaranızı girerek kargonuzun güncel durumunu öğrenebilirsiniz.</p>
+      </div>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <form id="trackForm" class="row g-3">
+            <div class="col-md-9">
+              <input type="text" class="form-control form-control-lg" id="orderNumberInput" placeholder="Örn: SP-100234" required>
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-search"></i> Sorgula</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="loadingIndicator" class="text-center d-none my-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Aranıyor...</span>
+        </div>
+        <p class="mt-2 text-muted">Siparişiniz aranıyor...</p>
+      </div>
+
+      <div id="errorMessage" class="alert alert-danger d-none text-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-4 d-block mb-2"></i>
+        Belirtilen numaraya ait bir sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edip tekrar deneyin.
+      </div>
+
+      <div id="resultContainer" class="d-none">
+          <div class="card shadow status-card" id="statusCardBorder">
+              <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                      <h5 class="mb-0 text-muted">Sipariş No: <span id="resOrderNo" class="text-dark fw-bold"></span></h5>
+                      <span id="resStatusBadge" class="badge fs-6"></span>
+                  </div>
+              </div>
+              <div class="card-body p-4">
+                  <h4 class="card-title mb-4">Merhaba, <span id="resCustomerName" class="text-primary"></span></h4>
+
+                  <div class="row mb-3">
+                      <div class="col-sm-5 text-muted fw-bold">Sipariş İçeriği:</div>
+                      <div class="col-sm-7" id="resProductDetails"></div>
+                  </div>
+
+                  <div class="row mb-3">
+                      <div class="col-sm-5 text-muted fw-bold">Kargo Durumu:</div>
+                      <div class="col-sm-7 fs-5 fw-bold" id="resStatusText"></div>
+                  </div>
+
+                  <div class="row mb-3" id="estimatedDeliveryRow">
+                      <div class="col-sm-5 text-muted fw-bold">Tahmini Teslimat:</div>
+                      <div class="col-sm-7" id="resEstimatedDelivery"></div>
+                  </div>
+
+                  <div class="row mb-3" id="notesRow">
+                      <div class="col-sm-5 text-muted fw-bold">Açıklama:</div>
+                      <div class="col-sm-7 text-muted" id="resNotes"></div>
+                  </div>
+
+                  <div id="trackingLinkContainer" class="mt-4 pt-3 border-top d-none">
+                      <a href="#" id="resTrackingLink" target="_blank" class="btn btn-outline-primary w-100">
+                          <i class="bi bi-box-arrow-up-right me-2"></i> Kargo Firmasının Sitesinde Takip Et
+                      </a>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <script>
+        // Müşteriye açık (Public) API uç noktası
+        const API_URL = "http://127.0.0.1:8000/api/orders/track/";
+
+        document.getElementById('trackForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const orderNo = document.getElementById('orderNumberInput').value.trim();
+            if(!orderNo) return;
+
+            // Arayüzü sıfırla ve yükleniyor animasyonunu göster
+            document.getElementById('resultContainer').classList.add('d-none');
+            document.getElementById('errorMessage').classList.add('d-none');
+            document.getElementById('loadingIndicator').classList.remove('d-none');
+
+            try {
+                // FastAPI'ye sorgu at
+                const response = await fetch(API_URL + encodeURIComponent(orderNo));
+
+                document.getElementById('loadingIndicator').classList.add('d-none');
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        document.getElementById('errorMessage').classList.remove('d-none');
+                    } else {
+                        alert("Sistemsel bir hata oluştu, lütfen daha sonra tekrar deneyin.");
+                    }
+                    return;
+                }
+
+                const order = await response.json();
+                showResult(order);
+
+            } catch (error) {
+                console.error("Ağ hatası:", error);
+                document.getElementById('loadingIndicator').classList.add('d-none');
+                alert("Bağlantı kurulamadı. Lütfen internetinizi kontrol edin.");
+            }
+        });
+
+        function showResult(order) {
+            document.getElementById('resOrderNo').textContent = order.order_number;
+            document.getElementById('resCustomerName').textContent = order.customer_name;
+            document.getElementById('resStatusText').textContent = order.status;
+
+            // Ürün adını güvenli bir şekilde çek
+            const productName = order.products ? order.products.name : "Ürün detayı bulunamadı";
+            document.getElementById('resProductDetails').innerHTML = `<span class="fw-bold">${order.quantity}x</span> ${productName}`;
+
+            if (order.estimated_delivery) {
+                document.getElementById('resEstimatedDelivery').textContent = new Date(order.estimated_delivery).toLocaleDateString('tr-TR');
+                document.getElementById('estimatedDeliveryRow').classList.remove('d-none');
+            } else {
+                document.getElementById('estimatedDeliveryRow').classList.add('d-none');
+            }
+
+            if (order.notes) {
+                document.getElementById('resNotes').textContent = order.notes;
+                document.getElementById('notesRow').classList.remove('d-none');
+            } else {
+                document.getElementById('notesRow').classList.add('d-none');
+            }
+
+            if (order.tracking_link) {
+                document.getElementById('resTrackingLink').href = order.tracking_link;
+                document.getElementById('trackingLinkContainer').classList.remove('d-none');
+            } else {
+                document.getElementById('trackingLinkContainer').classList.add('d-none');
+            }
+
+            // Duruma göre renkleri (Badge ve Sol Çizgi) ayarla
+            const statusCard = document.getElementById('statusCardBorder');
+            const badge = document.getElementById('resStatusBadge');
+
+            statusCard.className = "card shadow status-card";
+            badge.className = "badge fs-6";
+
+            if(order.status === "Hazırlanıyor") {
+                statusCard.classList.add("status-hazirlaniyor");
+                badge.classList.add("bg-warning", "text-dark");
+                badge.textContent = "Hazırlanıyor";
+            } else if(order.status === "Kargoya Verildi") {
+                statusCard.classList.add("status-kargoda");
+                badge.classList.add("bg-primary");
+                badge.innerHTML = '<i class="bi bi-truck"></i> Kargoda';
+            } else if(order.status === "Dağıtımda") {
+                statusCard.classList.add("status-dagitimda");
+                badge.classList.add("bg-info", "text-dark");
+                badge.innerHTML = '<i class="bi bi-house-door"></i> Dağıtımda';
+            } else if(order.status === "Teslim Edildi") {
+                statusCard.classList.add("status-teslim");
+                badge.classList.add("bg-success");
+                badge.innerHTML = '<i class="bi bi-check2-circle"></i> Teslim Edildi';
+            } else if(order.status === "İptal Edildi") {
+                statusCard.classList.add("status-iptal");
+                badge.classList.add("bg-danger");
+                badge.innerHTML = '<i class="bi bi-x-circle"></i> İptal Edildi';
+            }
+
+            document.getElementById('resultContainer').classList.remove('d-none');
+        }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giriş Yap - Stok Yönetim Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="home.html">Stok Yönetim Sistemi</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="login.html">Giriş Yap</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="register.html">Kayıt Ol</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-5">
+          <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">Giriş Yap</h2>
+
+                <form id="loginForm">
+                  <div class="mb-3">
+                    <label for="email" class="form-label">E-posta Adresi</label>
+                    <input type="email" class="form-control" id="email" required placeholder="ornek@sirket.com">
+                  </div>
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Şifre</label>
+                    <input type="password" class="form-control" id="password" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100 mt-3">Giriş Yap</button>
+                </form>
+                <div class="text-center mt-3">
+                    <small>Hesabınız yok mu? <a href="register.html">Kayıt Olun</a></small>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://lanmrttuhqmneqsfockz.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxhbm1ydHR1aHFtbmVxc2ZvY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTI3NjYsImV4cCI6MjA5Mzk4ODc2Nn0.qkGwvBqvFhnLFSLi6cZtibMwuljf2yBBwMDTZ2PF1AQ';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Sayfa yenilenmesini durdur
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // Backend Supabase ile kimlik doğrulama
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    alert("Giriş başarısız: " + error.message);
+                } else {
+                    // Kullanıcı Kimliğini (user_id) kaydet ve yönlendir
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userId', data.user.id); 
+                    window.location.href = 'products.html'; 
+                }
+            } catch (err) {
+                console.error("Beklenmeyen hata:", err);
+            }
+        });
+    </script>
+  </body>
+</html>
