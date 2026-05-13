@@ -4,35 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tedarik Siparişleri Paneli</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
         body { background-color: #f8f9fa; }
-
-        /* Üst Özet Kartları */
-        .summary-box {
-            border: 0;
-            border-left: 4px solid #0d6efd;
-            border-radius: 8px;
-        }
+        .summary-box { border: 0; border-left: 4px solid #0d6efd; border-radius: 8px; }
         .summary-box.box-warning { border-left-color: #fd7e14; }
         .summary-box.box-success { border-left-color: #198754; }
-        .summary-box.box-info { border-left-color: #0dcaf0; }
+        .summary-box.box-danger  { border-left-color: #dc3545; }
         .small-muted { font-size: .875rem; color: #6c757d; }
-
-        /* Swagger Tarzı Accordion Renk Paletleri */
-        .supply-header-preparing { background-color: #e0f7fa; border: 1px solid #b2ebf2; }
-        .supply-badge-preparing { background-color: #00bcd4; color: white; min-width: 100px; }
-
-        .supply-header-transit { background-color: #fff3e0; border: 1px solid #ffe0b2; }
-        .supply-badge-transit { background-color: #ff9800; color: white; min-width: 100px; }
-
-        .supply-header-arrived { background-color: #e8f5e9; border: 1px solid #c8e6c9; }
-        .supply-badge-arrived { background-color: #4caf50; color: white; min-width: 100px; }
-
+        .supply-header-planned   { background-color: #e0f7fa; border: 1px solid #b2ebf2; }
+        .supply-badge-planned    { background-color: #00bcd4; color: white; min-width: 100px; }
+        .supply-header-completed { background-color: #e8f5e9; border: 1px solid #c8e6c9; }
+        .supply-badge-completed  { background-color: #4caf50; color: white; min-width: 100px; }
+        .supply-header-delayed   { background-color: #fbf1e6; border: 1px solid #f4d2c2; }
+        .supply-badge-delayed    { background-color: #fca130; color: white; min-width: 100px; }
         .accordion-button:focus { box-shadow: none; }
         .accordion-button:not(.collapsed) { color: inherit; box-shadow: none; }
     </style>
@@ -42,200 +29,164 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1">Tedarik Siparişleri (B2B)</h2>
-            <p class="text-muted mb-0">Tedarikçilerden beklenen ürünlerin üretim, nakliye ve depo giriş durumlarını takip edin.</p>
+            <h2 class="mb-1">Tedarik Siparişleri</h2>
+            <p class="text-muted mb-0">Tedarikçilerden beklenen ürünlerin durumlarını takip edin.</p>
         </div>
-        <button class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Yeni Tedarik Siparişi
-        </button>
     </div>
 
-    <!--  ÜST ÖZET KARTLARI -->
+    <!-- ÖZET KARTLARI -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card shadow-sm summary-box">
                 <div class="card-body">
-                    <div class="small-muted">Toplam Sipariş</div>
-                    <div class="fs-3 fw-bold" id="totalSupplyCount">0</div>
+                    <div class="small-muted">Toplam</div>
+                    <div class="fs-3 fw-bold" id="totalCount">0</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm summary-box box-info">
+            <div class="card shadow-sm summary-box box-info" style="border-left-color:#0dcaf0">
                 <div class="card-body">
-                    <div class="small-muted">Üretimde / Hazırlanıyor</div>
-                    <div class="fs-3 fw-bold" id="preparingSupplyCount">0</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm summary-box box-warning">
-                <div class="card-body">
-                    <div class="small-muted">Nakliyede / Gümrükte</div>
-                    <div class="fs-3 fw-bold" id="transitSupplyCount">0</div>
+                    <div class="small-muted">Planlandı</div>
+                    <div class="fs-3 fw-bold" id="plannedCount">0</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm summary-box box-success">
                 <div class="card-body">
-                    <div class="small-muted">Depoya Ulaştı</div>
-                    <div class="fs-3 fw-bold" id="arrivedSupplyCount">0</div>
+                    <div class="small-muted">Tamamlandı</div>
+                    <div class="fs-3 fw-bold" id="completedCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm summary-box box-danger">
+                <div class="card-body">
+                    <div class="small-muted">Gecikmiş</div>
+                    <div class="fs-3 fw-bold" id="delayedCount">0</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filtreleme Alanı -->
+    <!-- FİLTRE -->
     <div class="row mb-3">
         <div class="col-md-3">
             <select id="statusFilter" class="form-select">
                 <option value="">Tüm Durumlar</option>
-                <option value="preparing">Üretimde / Hazırlanıyor</option>
-                <option value="in_transit">Nakliyede</option>
-                <option value="arrived">Depoya Ulaştı</option>
+                <option value="Planlandı">Planlandı</option>
+                <option value="Tamamlandı">Tamamlandı</option>
+                <option value="Gecikmiş">Gecikmiş</option>
             </select>
         </div>
     </div>
 
-    <!-- AÇILIR KAPANIR (ACCORDION) TEDARİK LİSTESİ -->
+    <!-- ACCORDION LİSTE -->
     <div class="accordion" id="supplyAccordion">
         <div class="text-center py-4" id="loadingIndicator">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Yükleniyor...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2 text-muted">Tedarik verileri çekiliyor...</p>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    let allDeliveries = [];
+
     async function loadSupplyData() {
         const container = document.getElementById("supplyAccordion");
-
         try {
-            // MOCK DATA:
-            const mockData = [
-                {
-                    id: "PO-2026-041",
-                    status: "in_transit",
-                    status_text: "Nakliyede",
-                    supplier: "Global Mikroelektronik A.Ş.",
-                    items: "200x STM32 Mikrodenetleyici, 50x ARM Cortex-M Geliştirme Kartı",
-                    expected_date: "18 Mayıs 2026",
-                    total_cost: "₺ 125,000",
-                    notes: "Gümrük işlemleri tamamlandı, antrepodan yola çıktı.",
-                    warehouse: "Ana Depo - İstanbul"
-                },
-                {
-                    id: "PO-2026-042",
-                    status: "preparing",
-                    status_text: "Üretimde",
-                    supplier: "UAV Components Ltd.",
-                    items: "40x Monoküler Kamera Modülü, 100x Fırçasız Motor",
-                    expected_date: "25 Mayıs 2026",
-                    total_cost: "$ 4,200",
-                    notes: "Kamera modüllerinin test süreçleri devam ediyor. Hafta sonu kargoya verilecek.",
-                    warehouse: "Ar-Ge Laboratuvarı"
-                },
-                {
-                    id: "PO-2026-039",
-                    status: "arrived",
-                    status_text: "Depoya Ulaştı",
-                    supplier: "TechSensor GMBH",
-                    items: "500x Mesafe Sensörü, 1000x SMD Direnç Seti",
-                    expected_date: "10 Mayıs 2026",
-                    total_cost: "€ 1,850",
-                    notes: "Ürünler sayıldı ve eksiksiz teslim alındı. Kalite kontrol onayı verildi.",
-                    warehouse: "Ana Depo - İstanbul"
-                }
-            ];
+            const response = await fetch(`${API_BASE}/purchase-orders/`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            allDeliveries = await response.json();
+            renderList();
+        } catch (error) {
+            console.error("Veri çekme hatası:", error);
+            container.innerHTML = "<div class='alert alert-danger'>Veriler yüklenemedi. Backend bağlantısını kontrol edin.</div>";
+        }
+    }
 
-            // Özet Kartlarını Güncelle
-            updateSummaryCards(mockData);
+    function renderList() {
+        const container = document.getElementById("supplyAccordion");
+        const selectedStatus = document.getElementById("statusFilter").value;
+        const filtered = selectedStatus
+            ? allDeliveries.filter(d => d.status === selectedStatus)
+            : allDeliveries;
 
-            // Filtreleme İşlemi
-            const selectedStatus = document.getElementById("statusFilter").value;
-            const filteredData = selectedStatus ? mockData.filter(item => item.status === selectedStatus) : mockData;
+        updateSummaryCards(allDeliveries);
+        container.innerHTML = "";
 
-            container.innerHTML = "";
+        if (filtered.length === 0) {
+            container.innerHTML = "<div class='alert alert-secondary'>Bu kritere uygun tedarik bulunamadı.</div>";
+            return;
+        }
 
-            if (filteredData.length === 0) {
-                container.innerHTML = "<div class='alert alert-secondary'>Bu kritere uygun tedarik siparişi bulunamadı.</div>";
-                return;
+        filtered.forEach((delivery, index) => {
+            let headerClass, badgeClass, badgeText;
+
+            if (delivery.status === "Tamamlandı") {
+                headerClass = "supply-header-completed";
+                badgeClass  = "supply-badge-completed";
+                badgeText   = "TAMAMLANDI";
+            } else if (delivery.status === "Gecikmiş") {
+                headerClass = "supply-header-delayed";
+                badgeClass  = "supply-badge-delayed";
+                badgeText   = "GECİKMİŞ";
+            } else {
+                headerClass = "supply-header-planned";
+                badgeClass  = "supply-badge-planned";
+                badgeText   = "PLANLANDI";
             }
 
-            // Accordion Listesini Oluştur
-            filteredData.forEach((order, index) => {
-                let headerClass, badgeClass, badgeText;
-
-                if (order.status === "arrived") {
-                    headerClass = "supply-header-arrived";
-                    badgeClass = "supply-badge-arrived";
-                    badgeText = "TAMAMLANDI";
-                } else if (order.status === "in_transit") {
-                    headerClass = "supply-header-transit";
-                    badgeClass = "supply-badge-transit";
-                    badgeText = "NAKLİYEDE";
-                } else {
-                    headerClass = "supply-header-preparing";
-                    badgeClass = "supply-badge-preparing";
-                    badgeText = "HAZIRLANIYOR";
-                }
-
-                const htmlString = `
-                    <div class="accordion-item mb-3 border-0 shadow-sm">
-                        <h2 class="accordion-header" id="heading${index}">
-                            <button class="accordion-button collapsed ${headerClass} rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
-                                <span class="badge ${badgeClass} p-2 me-3 fs-6">${badgeText}</span>
-                                <span class="fw-bold me-2 text-dark">${order.id}</span>
-                                <span class="text-secondary d-none d-md-inline"> - ${order.supplier}</span>
-                            </button>
-                        </h2>
-                        <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#supplyAccordion">
-                            <div class="accordion-body bg-white border border-top-0 rounded-bottom">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3 mb-md-0">
-                                        <h6 class="text-primary"><i class="bi bi-box-seam me-1"></i> Sipariş İçeriği</h6>
-                                        <p class="mb-1"><strong>Tedarikçi:</strong> ${order.supplier}</p>
-                                        <p class="mb-1"><strong>Kalemler:</strong> ${order.items}</p>
-                                        <p class="mb-1"><strong>Sipariş Tutarı:</strong> ${order.total_cost}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="text-primary"><i class="bi bi-info-circle me-1"></i> Lojistik & Notlar</h6>
-                                        <p class="mb-1"><strong>Hedef Depo:</strong> ${order.warehouse}</p>
-                                        <p class="mb-1"><strong>Tahmini Varış:</strong> ${order.expected_date}</p>
-                                        <div class="alert alert-light border mt-2 py-2 px-3 fst-italic">
-                                            <i class="bi bi-card-text text-muted me-2"></i> "${order.notes}"
-                                        </div>
-                                    </div>
+            container.insertAdjacentHTML('beforeend', `
+                <div class="accordion-item mb-3 border-0 shadow-sm">
+                    <h2 class="accordion-header" id="heading${index}">
+                        <button class="accordion-button collapsed ${headerClass} rounded" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                            <span class="badge ${badgeClass} p-2 me-3 fs-6">${badgeText}</span>
+                            <span class="fw-bold me-2 text-dark">#${delivery.id}</span>
+                            <span class="text-secondary d-none d-md-inline"> — ${delivery.supplier || 'Tedarikçi Yok'}</span>
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#supplyAccordion">
+                        <div class="accordion-body bg-white border border-top-0 rounded-bottom">
+                            <div class="row">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <h6 class="text-primary"><i class="bi bi-box-seam me-1"></i> Sipariş Detayı</h6>
+                                    <p class="mb-1"><strong>Tedarikçi:</strong> ${delivery.supplier || '—'}</p>
+                                    <p class="mb-1"><strong>Tür:</strong> ${delivery.type}</p>
+                                    <p class="mb-1"><strong>Miktar:</strong> ${delivery.quantity} Adet</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="bi bi-info-circle me-1"></i> Lojistik & Notlar</h6>
+                                    <p class="mb-1"><strong>Tarih:</strong> ${delivery.date}</p>
+                                    <p class="mb-1"><strong>Durum:</strong> ${delivery.status}</p>
+                                    ${delivery.notes ? `
+                                    <div class="alert alert-light border mt-2 py-2 px-3 fst-italic">
+                                        <i class="bi bi-card-text text-muted me-2"></i> "${delivery.notes}"
+                                    </div>` : ""}
                                 </div>
                             </div>
                         </div>
                     </div>
-                `;
-                container.insertAdjacentHTML('beforeend', htmlString);
-            });
-
-        } catch (error) {
-            console.error("Hata:", error);
-            container.innerHTML = "<div class='alert alert-danger'>Veriler yüklenemedi.</div>";
-        }
+                </div>
+            `);
+        });
     }
 
     function updateSummaryCards(data) {
-        document.getElementById("totalSupplyCount").innerText = data.length;
-        document.getElementById("preparingSupplyCount").innerText = data.filter(i => i.status === 'preparing').length;
-        document.getElementById("transitSupplyCount").innerText = data.filter(i => i.status === 'in_transit').length;
-        document.getElementById("arrivedSupplyCount").innerText = data.filter(i => i.status === 'arrived').length;
+        document.getElementById("totalCount").innerText     = data.length;
+        document.getElementById("plannedCount").innerText   = data.filter(d => d.status === "Planlandı").length;
+        document.getElementById("completedCount").innerText = data.filter(d => d.status === "Tamamlandı").length;
+        document.getElementById("delayedCount").innerText   = data.filter(d => d.status === "Gecikmiş").length;
     }
 
     document.addEventListener("DOMContentLoaded", loadSupplyData);
-    document.getElementById("statusFilter").addEventListener("change", loadSupplyData);
-
+    document.getElementById("statusFilter").addEventListener("change", renderList);
 </script>
 </body>
 </html>

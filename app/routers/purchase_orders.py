@@ -38,3 +38,12 @@ def update_delivery_status(delivery_id: int, payload: StatusUpdate):
         return response.data[0]
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Güncelleme hatası: {str(e)}")
+
+####Teslimat Sayfası İçin Filtreleme
+@router.get("/filter", response_model=list[Delivery])
+def filter_deliveries(status: str = None):
+    query = supabase.table("deliveries").select("*")
+    if status:
+        query = query.eq("status", status)
+    response = query.execute()
+    return response.data

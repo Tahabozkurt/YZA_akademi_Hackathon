@@ -40,6 +40,15 @@ def update_sales_order_status(order_id: int, payload: StatusUpdate):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Güncelleme hatası: {str(e)}")
 
+## Kargo sayfası için
+@router.get("/shipments", response_model=list[SalesOrder])
+def list_shipment_orders():
+    response = supabase.table("orders") \
+        .select("*") \
+        .in_("status", ["Kargoya Verildi", "Teslim Edildi", "Gecikmiş"]) \
+        .execute()
+    return response.data
+
 @router.get("/test")
 def test():
     response = supabase.table("orders").select("*").execute()
